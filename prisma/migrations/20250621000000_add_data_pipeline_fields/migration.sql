@@ -23,6 +23,9 @@ ALTER TABLE "product_masters"
 CREATE INDEX IF NOT EXISTS "product_masters_status_idx" ON "product_masters"("status");
 CREATE INDEX IF NOT EXISTS "product_masters_dataStatus_idx" ON "product_masters"("dataStatus");
 
+-- AlterTable: brands에 nameKo 컬럼 추가 (init migration 누락분)
+ALTER TABLE "brands" ADD COLUMN IF NOT EXISTS "nameKo" TEXT;
+
 -- CreateIndex: Brand 검색 최적화
 CREATE INDEX IF NOT EXISTS "brands_name_idx" ON "brands"("name");
 CREATE INDEX IF NOT EXISTS "brands_nameKo_idx" ON "brands"("nameKo");

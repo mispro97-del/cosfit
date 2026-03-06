@@ -20,6 +20,8 @@ export async function GET() {
 
   const status = dbStatus === "ok" ? "ok" : "degraded";
 
+  // App Runner health check: always return 200 so the process-alive check passes.
+  // DB degraded state is visible in the response body but does not fail the health check.
   return NextResponse.json(
     {
       status,
@@ -34,6 +36,6 @@ export async function GET() {
         },
       ],
     },
-    { status: status === "ok" ? 200 : 503 }
+    { status: 200 }
   );
 }
