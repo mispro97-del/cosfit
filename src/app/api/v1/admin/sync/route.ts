@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
   currentSync = {
     isRunning: true,
-    progress: { phase: "fetching", processed: 0, total: 0, newProducts: 0, updatedProducts: 0, failedItems: 0, message: "시작..." },
+    progress: { phase: "fetching", processed: 0, total: 0, newProducts: 0, updatedProducts: 0, failedItems: 0, normalizedCount: 0, unmappedCount: 0, elapsedMs: 0, message: "시작..." },
     result: null,
     startedAt: new Date().toISOString(),
   };
@@ -62,6 +62,9 @@ export async function POST(request: NextRequest) {
         newProducts: 0,
         updatedProducts: 0,
         failedItems: 0,
+        normalizedCount: 0,
+        unmappedCount: 0,
+        elapsedMs: 0,
         message: error.message,
       };
       currentSync.isRunning = false;
@@ -90,7 +93,6 @@ export async function GET() {
             ingredientsNormalized: currentSync.result.ingredientsNormalized,
             ingredientsFailed: currentSync.result.ingredientsFailed,
             qualityIssues: currentSync.result.qualityIssues.length,
-            normFailures: currentSync.result.normFailures.length,
             fetchErrors: currentSync.result.fetchErrors.length,
             duration: currentSync.result.duration,
           }
