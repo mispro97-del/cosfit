@@ -1,0 +1,64 @@
+{
+  "ServiceName": "cosfit",
+  "SourceConfiguration": {
+    "AuthenticationConfiguration": {
+      "AccessRoleArn": "arn:aws:iam::419644947816:role/cosfit-apprunner-ecr-access"
+    },
+    "AutoDeploymentsEnabled": false,
+    "ImageRepository": {
+      "ImageIdentifier": "419644947816.dkr.ecr.ap-northeast-1.amazonaws.com/cosfit:latest",
+      "ImageRepositoryType": "ECR",
+      "ImageConfiguration": {
+        "Port": "3000",
+        "RuntimeEnvironmentVariables": {
+          "NODE_ENV": "production",
+          "HOSTNAME": "0.0.0.0",
+          "PORT": "3000",
+          "NEXT_TELEMETRY_DISABLED": "1",
+          "NEXT_PUBLIC_APP_NAME": "COSFIT",
+          "NEXT_PUBLIC_APP_URL": "https://cosfit.kr",
+          "NEXT_PUBLIC_API_BASE": "/api/v1",
+          "COSFIT_AI_MODEL": "gpt-4o",
+          "KFDA_API_BASE_URL": "https://openapi.foodsafetykorea.go.kr/api"
+        },
+        "RuntimeEnvironmentSecrets": {
+          "DATABASE_URL": "arn:aws:secretsmanager:ap-northeast-1:419644947816:secret:cosfit/prod/database-233N6E:DATABASE_URL::",
+          "DIRECT_URL": "arn:aws:secretsmanager:ap-northeast-1:419644947816:secret:cosfit/prod/database-233N6E:DIRECT_URL::",
+          "NEXTAUTH_SECRET": "arn:aws:secretsmanager:ap-northeast-1:419644947816:secret:cosfit/prod/auth-cjtIxb:NEXTAUTH_SECRET::",
+          "NEXTAUTH_URL": "arn:aws:secretsmanager:ap-northeast-1:419644947816:secret:cosfit/prod/auth-cjtIxb:NEXTAUTH_URL::",
+          "OPENAI_API_KEY": "arn:aws:secretsmanager:ap-northeast-1:419644947816:secret:cosfit/prod/api-keys-cvvFyi:OPENAI_API_KEY::",
+          "KFDA_API_KEY": "arn:aws:secretsmanager:ap-northeast-1:419644947816:secret:cosfit/prod/api-keys-cvvFyi:KFDA_API_KEY::"
+        }
+      }
+    }
+  },
+  "InstanceConfiguration": {
+    "Cpu": "1024",
+    "Memory": "2048",
+    "InstanceRoleArn": "arn:aws:iam::419644947816:role/cosfit-apprunner-instance"
+  },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/api/health",
+    "Interval": 10,
+    "Timeout": 5,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 3
+  },
+  "NetworkConfiguration": {
+    "EgressConfiguration": {
+      "EgressType": "VPC",
+      "VpcConnectorArn": "arn:aws:apprunner:ap-northeast-1:419644947816:vpcconnector/cosfit-vpc-connector/1/bf0ae8c718a2483098781af6afe624b1"
+    }
+  },
+  "Tags": [
+    {
+      "Key": "Project",
+      "Value": "cosfit"
+    },
+    {
+      "Key": "Environment",
+      "Value": "production"
+    }
+  ]
+}

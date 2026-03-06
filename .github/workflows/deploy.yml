@@ -1,0 +1,325 @@
+# ============================================================
+# COSFIT - AWS Production Deployment
+# ============================================================
+# Trigger: push to main
+# Pipeline:
+#   1. Quality Gate (lint + type-check)
+#   2. DB Migration (prisma migrate deploy)
+#   3. Docker Build → ECR Push (layer cache)
+#   4. App Runner Deploy
+#   5. Health Check (POST-deploy verification)
+#
+# ┌─ GitHub Secrets ─────────────────────────────────────────┐
+# │ AWS_ACCESS_KEY_ID        IAM 배포 사용자 Access Key      │
+# │ AWS_SECRET_ACCESS_KEY    IAM 시크릿                     │
+# │ AWS_ACCOUNT_ID           12자리 AWS 계정 ID             │
+# │ APP_RUNNER_SERVICE_ARN   App Runner 서비스 ARN          │
+# │ DATABASE_URL             RDS 연결 URL (마이그레이션용)    │
+# │ DIRECT_URL               RDS Direct URL                │
+# └─────────────────────────────────────────────────────────┘
+# ┌─ GitHub Variables ──────────────────────────────────────┐
+# │ APP_URL                  https://cosfit.kr              │
+# │ AWS_REGION               ap-northeast-2 (default)      │
+# │ ECR_REPOSITORY           cosfit (default)              │
+# └─────────────────────────────────────────────────────────┘
+# ============================================================
+
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: "Skip quality gate (emergency)"
+        type: boolean
+        default: false
+      skip_migration:
+        description: "Skip DB migration"
+        type: boolean
+        default: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'ap-northeast-1' }}
+  ECR_REPO: ${{ vars.ECR_REPOSITORY || 'cosfit' }}
+  NODE_VERSION: "20"
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 1. Quality Gate
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  quality:
+    name: "🔍 Quality Gate"
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_tests }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type Check
+        run: npm run type-check
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 2. Database Migration
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  migrate:
+    name: "🗄️ DB Migration"
+    runs-on: ubuntu-latest
+    needs: quality
+    if: |
+      always() &&
+      (needs.quality.result == 'success' || needs.quality.result == 'skipped') &&
+      !inputs.skip_migration
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install
+        run: npm ci
+
+      - name: Check pending migrations
+        id: check
+        run: |
+          OUTPUT=$(npx prisma migrate status 2>&1 || true)
+          echo "$OUTPUT"
+          if echo "$OUTPUT" | grep -q "Database schema is up to date"; then
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Apply migrations
+        if: steps.check.outputs.pending == 'true'
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+
+      - name: Verify schema
+        run: |
+          npx prisma migrate status
+          echo "✅ Database migration complete"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 3. Build & Push to ECR
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  build:
+    name: "🐳 Build & Push ECR"
+    runs-on: ubuntu-latest
+    needs: [quality, migrate]
+    if: |
+      always() &&
+      (needs.quality.result == 'success' || needs.quality.result == 'skipped') &&
+      (needs.migrate.result == 'success' || needs.migrate.result == 'skipped')
+    environment: production
+    outputs:
+      image_uri: ${{ steps.meta.outputs.image_uri }}
+      sha_short: ${{ steps.meta.outputs.sha_short }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Image metadata
+        id: meta
+        run: |
+          SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          REGISTRY="${{ steps.ecr.outputs.registry }}"
+          IMAGE_URI="${REGISTRY}/${{ env.ECR_REPO }}:${SHA_SHORT}"
+          LATEST_URI="${REGISTRY}/${{ env.ECR_REPO }}:latest"
+          echo "sha_short=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "image_uri=${IMAGE_URI}" >> "$GITHUB_OUTPUT"
+          echo "latest_uri=${LATEST_URI}" >> "$GITHUB_OUTPUT"
+          echo "📦 Image: ${IMAGE_URI}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image_uri }}
+            ${{ steps.meta.outputs.latest_uri }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Summary
+        run: |
+          echo "### 🐳 Docker Image" >> $GITHUB_STEP_SUMMARY
+          echo "- **URI:** \`${{ steps.meta.outputs.image_uri }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **SHA:** \`${{ steps.meta.outputs.sha_short }}\`" >> $GITHUB_STEP_SUMMARY
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 4. Deploy to App Runner
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  deploy:
+    name: "🚀 Deploy App Runner"
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+    steps:
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update App Runner service
+        id: deploy
+        run: |
+          SERVICE_ARN="${{ secrets.APP_RUNNER_SERVICE_ARN }}"
+          IMAGE_URI="${{ needs.build.outputs.image_uri }}"
+
+          echo "🚀 Deploying ${IMAGE_URI} to App Runner..."
+
+          # Update the service image
+          aws apprunner update-service \
+            --service-arn "$SERVICE_ARN" \
+            --source-configuration "{
+              \"ImageRepository\": {
+                \"ImageIdentifier\": \"${IMAGE_URI}\",
+                \"ImageRepositoryType\": \"ECR\",
+                \"ImageConfiguration\": {
+                  \"Port\": \"3000\"
+                }
+              }
+            }" \
+            --output json > /tmp/update-response.json
+
+          OPERATION_ID=$(jq -r '.OperationId' /tmp/update-response.json)
+          echo "operation_id=${OPERATION_ID}" >> "$GITHUB_OUTPUT"
+          echo "📋 Operation: ${OPERATION_ID}"
+
+      - name: Wait for deployment
+        run: |
+          SERVICE_ARN="${{ secrets.APP_RUNNER_SERVICE_ARN }}"
+          echo "⏳ Waiting for deployment to complete..."
+
+          for i in $(seq 1 30); do
+            STATUS=$(aws apprunner describe-service \
+              --service-arn "$SERVICE_ARN" \
+              --query "Service.Status" \
+              --output text 2>/dev/null || echo "UNKNOWN")
+
+            echo "  Attempt ${i}/30: ${STATUS}"
+
+            if [ "$STATUS" = "RUNNING" ]; then
+              echo "✅ Deployment successful!"
+              SERVICE_URL=$(aws apprunner describe-service \
+                --service-arn "$SERVICE_ARN" \
+                --query "Service.ServiceUrl" \
+                --output text)
+              echo "🌐 URL: https://${SERVICE_URL}"
+              echo "service_url=https://${SERVICE_URL}" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if [ "$STATUS" = "CREATE_FAILED" ] || [ "$STATUS" = "DELETE_FAILED" ]; then
+              echo "❌ Deployment failed with status: ${STATUS}"
+              exit 1
+            fi
+
+            sleep 20
+          done
+
+          echo "❌ Deployment timed out (10 min)"
+          exit 1
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "### 🚀 Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`${{ needs.build.outputs.image_uri }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ needs.build.outputs.sha_short }}\`" >> $GITHUB_STEP_SUMMARY
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 5. Post-Deploy Health Check
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  health-check:
+    name: "❤️ Health Check"
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Verify service health
+        run: |
+          APP_URL="${{ vars.APP_URL || 'https://cosfit.kr' }}"
+          HEALTH_URL="${APP_URL}/api/health"
+
+          echo "🏥 Checking: ${HEALTH_URL}"
+          echo ""
+
+          for i in 1 2 3 4 5; do
+            HTTP_CODE=$(curl -s -o /tmp/health.json -w "%{http_code}" \
+              --max-time 10 "$HEALTH_URL" 2>/dev/null || echo "000")
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check passed (attempt ${i})"
+              echo ""
+              cat /tmp/health.json | jq . 2>/dev/null || cat /tmp/health.json
+              echo ""
+
+              # Extract key metrics
+              STATUS=$(jq -r '.status' /tmp/health.json 2>/dev/null)
+              VERSION=$(jq -r '.version' /tmp/health.json 2>/dev/null)
+              DB_STATUS=$(jq -r '.checks[] | select(.name=="database") | .status' /tmp/health.json 2>/dev/null)
+              DB_LATENCY=$(jq -r '.checks[] | select(.name=="database") | .latencyMs' /tmp/health.json 2>/dev/null)
+
+              echo "### ❤️ Health Check" >> $GITHUB_STEP_SUMMARY
+              echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+              echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+              echo "| Service | ${STATUS} |" >> $GITHUB_STEP_SUMMARY
+              echo "| Version | ${VERSION} |" >> $GITHUB_STEP_SUMMARY
+              echo "| Database | ${DB_STATUS} (${DB_LATENCY}ms) |" >> $GITHUB_STEP_SUMMARY
+              echo "| URL | ${APP_URL} |" >> $GITHUB_STEP_SUMMARY
+              exit 0
+            fi
+
+            echo "⏳ Attempt ${i}: HTTP ${HTTP_CODE}, retrying in 15s..."
+            sleep 15
+          done
+
+          echo "❌ Health check failed after 5 attempts"
+          echo "### ❌ Health Check Failed" >> $GITHUB_STEP_SUMMARY
+          echo "Service did not respond with 200 at ${HEALTH_URL}" >> $GITHUB_STEP_SUMMARY
+          exit 1

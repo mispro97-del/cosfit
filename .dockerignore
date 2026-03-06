@@ -1,0 +1,60 @@
+# ============================================================
+# COSFIT - Docker Build Context Exclusions
+# ============================================================
+
+# Dependencies (Stage 1에서 새로 설치)
+node_modules
+.pnp
+.pnp.js
+
+# Build output (Stage 2에서 새로 생성)
+.next
+out
+build
+
+# Version control
+.git
+.gitignore
+
+# Environment (런타임에 주입)
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing & Dev
+coverage
+__tests__
+*.test.*
+*.spec.*
+jest.config.*
+vitest.config.*
+
+# Documentation
+*.md
+LICENSE
+
+# CI/CD (컨테이너에 불필요)
+.github
+.vercel
+vercel.json
+
+# Docker (재귀 방지)
+Dockerfile
+docker-compose.*
+.dockerignore
+
+# Scripts (빌드에 불필요)
+scripts
+
+# Infra (IaC 코드)
+infra

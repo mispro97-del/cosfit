@@ -1,0 +1,26 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "prisma generate && next build",
+  "installCommand": "npm ci",
+  "regions": ["icn1"],
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/sync-kfda",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/normalize-batch",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/partner-snapshots",
+      "schedule": "0 4 * * 1"
+    }
+  ]
+}
