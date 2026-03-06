@@ -27,7 +27,7 @@ const ROUTE_RULES: RouteRule[] = [
   { pattern: /^\/(shop)\//, roles: ["USER", "PARTNER", "ADMIN"], redirect: "/login" },
 ];
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/share", "/api/auth", "/api/v1/auth", "/api/v1/products/search", "/api/webhook"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/share", "/api/auth", "/api/health", "/api/v1/auth", "/api/v1/products/search", "/api/webhook"];
 const STATIC_PREFIXES = ["/_next", "/images", "/favicon.ico", "/robots.txt"];
 
 // ── Rate Limiter (In-Memory) ──

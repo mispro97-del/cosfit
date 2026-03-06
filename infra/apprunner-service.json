@@ -38,12 +38,11 @@
     "InstanceRoleArn": "arn:aws:iam::419644947816:role/cosfit-apprunner-instance"
   },
   "HealthCheckConfiguration": {
-    "Protocol": "HTTP",
-    "Path": "/api/health",
+    "Protocol": "TCP",
     "Interval": 10,
     "Timeout": 5,
     "HealthyThreshold": 1,
-    "UnhealthyThreshold": 3
+    "UnhealthyThreshold": 5
   },
   "NetworkConfiguration": {
     "EgressConfiguration": {
