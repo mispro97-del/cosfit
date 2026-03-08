@@ -11,8 +11,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")     // Connection Pooling (PgBouncer/RDS Proxy)
-  directUrl = env("DIRECT_URL")       // 마이그레이션 전용 Direct 연결
+  url       = env("DATABASE_URL") // Connection Pooling (PgBouncer/RDS Proxy)
+  directUrl = env("DIRECT_URL") // 마이그레이션 전용 Direct 연결
 }
 
 // ============================================================
@@ -49,15 +49,15 @@ enum OnboardingStatus {
 }
 
 model User {
-  id                String            @id @default(cuid())
-  email             String            @unique
-  emailVerified     DateTime?
-  passwordHash      String?
-  name              String?
-  nickname          String?           @unique
-  profileImage      String?
-  role              Role              @default(USER)
-  onboardingStatus  OnboardingStatus  @default(PENDING)
+  id               String           @id @default(cuid())
+  email            String           @unique
+  emailVerified    DateTime?
+  passwordHash     String?
+  name             String?
+  nickname         String?          @unique
+  profileImage     String?
+  role             Role             @default(USER)
+  onboardingStatus OnboardingStatus @default(PENDING)
 
   skinProfile       SkinProfile?
   holyGrailProducts HolyGrailProduct[]
@@ -68,12 +68,16 @@ model User {
   accounts          Account[]
   cartItems         CartItem[]
   orders            Order[]
+  userProducts      UserProduct[]
+  routineAnalyses   RoutineAnalysis[]
+  recommendations   ProductRecommendation[]
+  couponUsages      CouponUsage[]
 
-  partnerId         String?
-  partner           Partner?          @relation(fields: [partnerId], references: [id])
+  partnerId String?
+  partner   Partner? @relation(fields: [partnerId], references: [id])
 
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([email])
   @@index([role])
@@ -81,18 +85,18 @@ model User {
 }
 
 model Account {
-  id                String   @id @default(cuid())
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refreshToken      String?  @db.Text
-  accessToken       String?  @db.Text
+  refreshToken      String? @db.Text
+  accessToken       String? @db.Text
   expiresAt         Int?
   tokenType         String?
   scope             String?
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -106,7 +110,7 @@ model Session {
   userAgent    String?
   ipAddress    String?
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
@@ -116,19 +120,19 @@ model Session {
 // ============================================================
 
 model SkinProfile {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  skinType        SkinType
-  skinConcerns    String[]
-  allergies       String[]
-  ageGroup        String?
-  gender          Gender?
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  skinType         SkinType
+  skinConcerns     String[]
+  allergies        String[]
+  ageGroup         String?
+  gender           Gender?
   sensitivityLevel Int      @default(3)
 
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("skin_profiles")
 }
@@ -164,11 +168,11 @@ model HolyGrailProduct {
   memo              String?         @db.Text
   manualIngredients String[]
 
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product           ProductMaster?  @relation(fields: [productId], references: [id])
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product ProductMaster? @relation(fields: [productId], references: [id])
 
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@map("holy_grail_products")
@@ -179,25 +183,25 @@ model HolyGrailProduct {
 // ============================================================
 
 model UserStandard {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  version               Int      @default(1)
+  id      String @id @default(cuid())
+  userId  String @unique
+  version Int    @default(1)
 
-  preferredIngredients  Json     // { ingredient, weight, reason }[]
-  avoidIngredients      Json     // { ingredient, riskLevel, reason }[]
-  ingredientPatterns    Json     // { pattern, description, confidence }[]
-  categoryPreferences   Json?
+  preferredIngredients Json // { ingredient, weight, reason }[]
+  avoidIngredients     Json // { ingredient, riskLevel, reason }[]
+  ingredientPatterns   Json // { pattern, description, confidence }[]
+  categoryPreferences  Json?
 
-  analysisModel         String   @default("cosfit-v1")
-  confidenceScore       Float    @default(0)
-  basedOnProductCount   Int      @default(0)
-  lastAnalyzedAt        DateTime @default(now())
+  analysisModel       String   @default("cosfit-v1")
+  confidenceScore     Float    @default(0)
+  basedOnProductCount Int      @default(0)
+  lastAnalyzedAt      DateTime @default(now())
 
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  compareResults        CompareResult[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  compareResults CompareResult[]
 
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("user_standards")
 }
@@ -207,49 +211,49 @@ model UserStandard {
 // ============================================================
 
 enum ProductStatus {
-  ACTIVE            // 정상 (검색 노출)
-  DISCONTINUED      // 단종
-  PENDING_REVIEW    // 수동 검토 필요
-  REJECTED          // 반려
-  DATA_COLLECTING   // 데이터 수집 중
-  NORM_FAILED       // 정규화 실패 (성분 누락 등)
+  ACTIVE // 정상 (검색 노출)
+  DISCONTINUED // 단종
+  PENDING_REVIEW // 수동 검토 필요
+  REJECTED // 반려
+  DATA_COLLECTING // 데이터 수집 중
+  NORM_FAILED // 정규화 실패 (성분 누락 등)
 }
 
 enum DataSyncStatus {
-  NONE              // 미수집
-  COLLECTING        // 수집 중
-  RAW_SAVED         // 원본 저장 완료
-  NORMALIZING       // 정규화 진행 중
-  SUCCESS           // 수집+정규화 완료 (검색 노출)
-  FAILED            // 수집 실패
-  QUALITY_ISSUE     // 품질 이슈 (수동 확인 필요)
+  NONE // 미수집
+  COLLECTING // 수집 중
+  RAW_SAVED // 원본 저장 완료
+  NORMALIZING // 정규화 진행 중
+  SUCCESS // 수집+정규화 완료 (검색 노출)
+  FAILED // 수집 실패
+  QUALITY_ISSUE // 품질 이슈 (수동 확인 필요)
 }
 
 model ProductMaster {
-  id                String          @id @default(cuid())
-  name              String
-  brandId           String
-  category          ProductCategory
-  subCategory       String?
-  description       String?         @db.Text
-  imageUrl          String?
-  barcode           String?         @unique
-  volume            String?
-  price             Int?
-  status            ProductStatus   @default(DATA_COLLECTING)
+  id          String          @id @default(cuid())
+  name        String
+  brandId     String
+  category    ProductCategory
+  subCategory String?
+  description String?         @db.Text
+  imageUrl    String?
+  barcode     String?         @unique
+  volume      String?
+  price       Int?
+  status      ProductStatus   @default(DATA_COLLECTING)
 
-  kfdaReportNo      String?         @unique
-  kfdaData          Json?
+  kfdaReportNo String? @unique
+  kfdaData     Json?
 
   // ── 데이터 수집 파이프라인 필드 ──
-  rawIngredients    String?         @db.Text     // 원본 전성분 문자열
-  ingredientCount   Int             @default(0)  // 정규화된 성분 수
-  dataStatus        DataSyncStatus  @default(NONE)
-  dataSyncedAt      DateTime?                    // 마지막 수집 시각
-  normFailureLog    Json?                        // 정규화 실패 상세
-  stock             Int             @default(0)  // 재고 수량
+  rawIngredients  String?        @db.Text // 원본 전성분 문자열
+  ingredientCount Int            @default(0) // 정규화된 성분 수
+  dataStatus      DataSyncStatus @default(NONE)
+  dataSyncedAt    DateTime? // 마지막 수집 시각
+  normFailureLog  Json? // 정규화 실패 상세
+  stock           Int            @default(0) // 재고 수량
 
-  brand             Brand           @relation(fields: [brandId], references: [id])
+  brand             Brand                   @relation(fields: [brandId], references: [id])
   ingredients       ProductIngredient[]
   holyGrailProducts HolyGrailProduct[]
   compareResults    CompareResult[]
@@ -257,9 +261,13 @@ model ProductMaster {
   partnerProducts   PartnerProduct[]
   cartItems         CartItem[]
   orderItems        OrderItem[]
+  userProducts      UserProduct[]
+  collectedReviews  CollectedReview[]
+  productTrends     ProductTrend[]
+  recommendations   ProductRecommendation[]
 
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([name])
   @@index([brandId])
@@ -271,18 +279,18 @@ model ProductMaster {
 }
 
 model Brand {
-  id          String          @id @default(cuid())
-  name        String          @unique
-  nameKo      String?
-  logoUrl     String?
-  website     String?
-  country     String?
+  id      String  @id @default(cuid())
+  name    String  @unique
+  nameKo  String?
+  logoUrl String?
+  website String?
+  country String?
 
-  products    ProductMaster[]
-  partner     Partner?
+  products ProductMaster[]
+  partner  Partner?
 
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([name])
   @@index([nameKo])
@@ -302,24 +310,27 @@ enum IngredientSafetyGrade {
 }
 
 model Ingredient {
-  id              String                  @id @default(cuid())
-  nameInci        String                  @unique
-  nameKo          String?
-  nameEn          String?
-  casNumber       String?                 @unique
-  category        String?
-  function        String[]
-  safetyGrade     IngredientSafetyGrade   @default(UNKNOWN)
-  ewgScore        Int?
-  description     String?                 @db.Text
-  commonAllergen  Boolean                 @default(false)
-  cosDnaIrritant  Int?
-  cosDnaSafety    Int?
+  id             String                @id @default(cuid())
+  nameInci       String                @unique
+  nameKo         String?
+  nameEn         String?
+  casNumber      String?               @unique
+  category       String?
+  function       String[]
+  safetyGrade    IngredientSafetyGrade @default(UNKNOWN)
+  ewgScore       Int?
+  description    String?               @db.Text
+  commonAllergen Boolean               @default(false)
+  cosDnaIrritant Int?
+  cosDnaSafety   Int?
 
-  products        ProductIngredient[]
+  products      ProductIngredient[]
+  synonyms      IngredientSynonym[]
+  interactionsA IngredientInteraction[] @relation("InteractionA")
+  interactionsB IngredientInteraction[] @relation("InteractionB")
 
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([nameInci])
   @@index([nameKo])
@@ -327,14 +338,14 @@ model Ingredient {
 }
 
 model ProductIngredient {
-  id            String        @id @default(cuid())
+  id            String @id @default(cuid())
   productId     String
   ingredientId  String
   orderIndex    Int
   concentration Float?
 
-  product       ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
-  ingredient    Ingredient    @relation(fields: [ingredientId], references: [id])
+  product    ProductMaster @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredient Ingredient    @relation(fields: [ingredientId], references: [id])
 
   @@unique([productId, ingredientId])
   @@index([productId])
@@ -346,26 +357,26 @@ model ProductIngredient {
 // ============================================================
 
 model CompareResult {
-  id                String        @id @default(cuid())
-  userId            String
-  userStandardId    String
-  productId         String
+  id             String @id @default(cuid())
+  userId         String
+  userStandardId String
+  productId      String
 
-  fitScore          Int
-  fitGrade          String
-  matchedGood       Json
-  matchedRisk       Json
-  missingPreferred  Json
-  summary           String        @db.Text
+  fitScore         Int
+  fitGrade         String
+  matchedGood      Json
+  matchedRisk      Json
+  missingPreferred Json
+  summary          String @db.Text
 
-  analysisModel     String        @default("cosfit-v1")
-  processingTimeMs  Int?
+  analysisModel    String @default("cosfit-v1")
+  processingTimeMs Int?
 
-  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userStandard      UserStandard  @relation(fields: [userStandardId], references: [id])
-  product           ProductMaster @relation(fields: [productId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userStandard UserStandard  @relation(fields: [userStandardId], references: [id])
+  product      ProductMaster @relation(fields: [productId], references: [id])
 
-  createdAt         DateTime      @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([productId])
@@ -391,64 +402,73 @@ enum PartnerTier {
 }
 
 model Partner {
-  id                  String          @id @default(cuid())
-  brandId             String          @unique
-  companyName         String
-  businessNumber      String          @unique
-  representativeName  String
-  contactEmail        String
-  contactPhone        String?
-  status              PartnerStatus   @default(PENDING)
-  tier                PartnerTier     @default(BASIC)
+  id                 String        @id @default(cuid())
+  brandId            String        @unique
+  companyName        String
+  businessNumber     String        @unique
+  representativeName String
+  contactEmail       String
+  contactPhone       String?
+  status             PartnerStatus @default(PENDING)
+  tier               PartnerTier   @default(BASIC)
 
-  contractStartDate   DateTime?
-  contractEndDate     DateTime?
-  apiKeyHash          String?         @unique
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+  apiKeyHash        String?   @unique
 
-  brand               Brand           @relation(fields: [brandId], references: [id])
-  users               User[]
-  products            PartnerProduct[]
-  statistics          PartnerStatSnapshot[]
+  brand      Brand                 @relation(fields: [brandId], references: [id])
+  users      User[]
+  products   PartnerProduct[]
+  statistics PartnerStatSnapshot[]
+  coupons    Coupon[]
+  promotions Promotion[]
 
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@map("partners")
 }
 
 model PartnerProduct {
-  id              String        @id @default(cuid())
-  partnerId       String
-  productId       String
-  isPromoted      Boolean       @default(false)
-  customData      Json?
+  id            String  @id @default(cuid())
+  partnerId     String
+  productId     String
+  isPromoted    Boolean @default(false)
+  customData    Json?
+  viewCount     Int     @default(0)
+  cartCount     Int     @default(0)
+  purchaseCount Int     @default(0)
 
-  partner         Partner       @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  product         ProductMaster @relation(fields: [productId], references: [id])
+  partner        Partner             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  product        ProductMaster       @relation(fields: [productId], references: [id])
+  variants       ProductVariant[]
+  images         ProductImage[]
+  description    ProductDescription?
+  promotionItems PromotionProduct[]
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([partnerId, productId])
   @@map("partner_products")
 }
 
 model PartnerStatSnapshot {
-  id                    String    @id @default(cuid())
-  partnerId             String
-  periodType            String
-  periodDate            DateTime
+  id         String   @id @default(cuid())
+  partnerId  String
+  periodType String
+  periodDate DateTime
 
-  totalCompares         Int       @default(0)
-  averageFitScore       Float     @default(0)
+  totalCompares         Int    @default(0)
+  averageFitScore       Float  @default(0)
   fitScoreDistribution  Json
   topMatchedIngredients Json?
   topRiskIngredients    Json?
-  uniqueUsers           Int       @default(0)
+  uniqueUsers           Int    @default(0)
   conversionRate        Float?
 
-  partner               Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, periodType, periodDate])
   @@index([partnerId])
@@ -467,28 +487,28 @@ enum ReviewStatus {
 }
 
 model Review {
-  id               String        @id @default(cuid())
+  id               String       @id @default(cuid())
   userId           String
   productId        String
   rating           Int
-  content          String        @db.Text
+  content          String       @db.Text
   pros             String[]
   cons             String[]
   skinTypeAtReview SkinType?
-  status           ReviewStatus  @default(PENDING)
+  status           ReviewStatus @default(PENDING)
 
-  aiSummary        String?       @db.Text
-  aiSentiment      String?
-  aiKeywords       String[]
-  aiSummarizedAt   DateTime?
-  aiApprovedBy     String?
-  aiApprovedAt     DateTime?
+  aiSummary      String?   @db.Text
+  aiSentiment    String?
+  aiKeywords     String[]
+  aiSummarizedAt DateTime?
+  aiApprovedBy   String?
+  aiApprovedAt   DateTime?
 
-  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product          ProductMaster @relation(fields: [productId], references: [id])
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product ProductMaster @relation(fields: [productId], references: [id])
 
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([productId])
   @@index([status])
@@ -507,16 +527,16 @@ enum SyncStatus {
 }
 
 model DataSyncLog {
-  id              String      @id @default(cuid())
-  source          String
-  syncType        String
-  status          SyncStatus  @default(PENDING)
-  itemsProcessed  Int         @default(0)
-  itemsFailed     Int         @default(0)
-  errorLog        Json?
-  startedAt       DateTime    @default(now())
-  completedAt     DateTime?
-  triggeredBy     String?
+  id             String     @id @default(cuid())
+  source         String
+  syncType       String
+  status         SyncStatus @default(PENDING)
+  itemsProcessed Int        @default(0)
+  itemsFailed    Int        @default(0)
+  errorLog       Json?
+  startedAt      DateTime   @default(now())
+  completedAt    DateTime?
+  triggeredBy    String?
 
   @@index([source])
   @@index([status])
@@ -528,18 +548,18 @@ model DataSyncLog {
 // ============================================================
 
 model CartItem {
-  id          String        @id @default(cuid())
-  userId      String
-  productId   String
-  quantity    Int           @default(1)
-  unitPrice   Int           // 상품 단가 (원)
-  metadata    Json?         // compareId 등 분석 연계 데이터
+  id        String @id @default(cuid())
+  userId    String
+  productId String
+  quantity  Int    @default(1)
+  unitPrice Int // 상품 단가 (원)
+  metadata  Json? // compareId 등 분석 연계 데이터
 
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product     ProductMaster @relation(fields: [productId], references: [id])
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product ProductMaster @relation(fields: [productId], references: [id])
 
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, productId])
   @@index([userId])
@@ -547,37 +567,37 @@ model CartItem {
 }
 
 enum OrderStatus {
-  PENDING_PAYMENT   // 결제 대기
-  PAID              // 결제 완료
-  PREPARING         // 상품 준비중
-  SHIPPED           // 배송중
-  DELIVERED         // 배송 완료
-  CANCELLED         // 취소됨
-  RETURN_REQUESTED  // 반품 요청
-  RETURNED          // 반품 완료
+  PENDING_PAYMENT // 결제 대기
+  PAID // 결제 완료
+  PREPARING // 상품 준비중
+  SHIPPED // 배송중
+  DELIVERED // 배송 완료
+  CANCELLED // 취소됨
+  RETURN_REQUESTED // 반품 요청
+  RETURNED // 반품 완료
 }
 
 model Order {
-  id              String        @id @default(cuid())
-  orderNumber     String        @unique  // ORD-YYYYMMDD-XXXXX
-  userId          String
+  id          String @id @default(cuid())
+  orderNumber String @unique // ORD-YYYYMMDD-XXXXX
+  userId      String
 
-  totalAmount     Int           // 총 상품금액 (원)
-  shippingFee     Int           @default(0)
-  discountAmount  Int           @default(0)
-  finalAmount     Int           // 최종 결제금액
+  totalAmount    Int // 총 상품금액 (원)
+  shippingFee    Int @default(0)
+  discountAmount Int @default(0)
+  finalAmount    Int // 최종 결제금액
 
-  status          OrderStatus   @default(PENDING_PAYMENT)
-  statusChangedAt DateTime      @default(now())
+  status          OrderStatus @default(PENDING_PAYMENT)
+  statusChangedAt DateTime    @default(now())
 
-  user            User          @relation(fields: [userId], references: [id])
-  items           OrderItem[]
-  payment         Payment?
-  shipping        ShippingInfo?
+  user     User          @relation(fields: [userId], references: [id])
+  items    OrderItem[]
+  payment  Payment?
+  shipping ShippingInfo?
 
-  orderedAt       DateTime      @default(now())
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  orderedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -586,20 +606,20 @@ model Order {
 }
 
 model OrderItem {
-  id            String        @id @default(cuid())
-  orderId       String
-  productId     String
-  partnerId     String?       // 입점사 식별 (정산용)
-  productName   String        // 주문 시점 스냅샷
-  productBrand  String
-  quantity      Int
-  unitPrice     Int
-  totalPrice    Int
-  fitScore      Int?          // 구매 시 FIT Score (분석 연계)
-  compareId     String?       // 비교 분석 연계
+  id           String  @id @default(cuid())
+  orderId      String
+  productId    String
+  partnerId    String? // 입점사 식별 (정산용)
+  productName  String // 주문 시점 스냅샷
+  productBrand String
+  quantity     Int
+  unitPrice    Int
+  totalPrice   Int
+  fitScore     Int? // 구매 시 FIT Score (분석 연계)
+  compareId    String? // 비교 분석 연계
 
-  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product       ProductMaster @relation(fields: [productId], references: [id])
+  order   Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product ProductMaster @relation(fields: [productId], references: [id])
 
   @@index([orderId])
   @@index([partnerId])
@@ -623,52 +643,52 @@ enum PaymentStatus {
 }
 
 model Payment {
-  id              String          @id @default(cuid())
-  orderId         String          @unique
-  method          PaymentMethod
-  status          PaymentStatus   @default(PENDING)
-  amount          Int
+  id      String        @id @default(cuid())
+  orderId String        @unique
+  method  PaymentMethod
+  status  PaymentStatus @default(PENDING)
+  amount  Int
 
-  pgProvider      String?         // PG사 (toss, nice, etc.)
-  pgTransactionId String?         @unique  // PG 거래번호
-  approvalNumber  String?         // 승인번호
+  pgProvider      String? // PG사 (toss, nice, etc.)
+  pgTransactionId String? @unique // PG 거래번호
+  approvalNumber  String? // 승인번호
   receiptUrl      String?
 
-  paidAt          DateTime?
-  failedAt        DateTime?
-  cancelledAt     DateTime?
-  refundedAt      DateTime?
-  failReason      String?
+  paidAt      DateTime?
+  failedAt    DateTime?
+  cancelledAt DateTime?
+  refundedAt  DateTime?
+  failReason  String?
 
-  order           Order           @relation(fields: [orderId], references: [id])
+  order Order @relation(fields: [orderId], references: [id])
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@map("payments")
 }
 
 model ShippingInfo {
-  id              String    @id @default(cuid())
-  orderId         String    @unique
+  id      String @id @default(cuid())
+  orderId String @unique
 
-  recipientName   String
-  phone           String
-  zipCode         String
-  address         String
-  addressDetail   String?
-  memo            String?
+  recipientName String
+  phone         String
+  zipCode       String
+  address       String
+  addressDetail String?
+  memo          String?
 
-  carrier         String?   // 택배사
-  trackingNumber  String?   // 운송장 번호
-  shippedAt       DateTime?
-  deliveredAt     DateTime?
+  carrier        String? // 택배사
+  trackingNumber String? // 운송장 번호
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
 
-  order           Order     @relation(fields: [orderId], references: [id])
+  order Order @relation(fields: [orderId], references: [id])
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("shipping_info")
 }
@@ -678,18 +698,320 @@ model ShippingInfo {
 // ============================================================
 
 model ActivityLog {
-  id          String    @id @default(cuid())
-  userId      String?
-  action      String
-  entityType  String?
-  entityId    String?
-  metadata    Json?
-  ipAddress   String?
+  id         String  @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
 
-  createdAt   DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([action])
   @@index([createdAt])
   @@map("activity_logs")
+}
+
+// ============================================================
+// 13. USER PRODUCTS (사용자 제품 등록 - 고도화)
+// ============================================================
+
+model UserProduct {
+  id           String  @id @default(cuid())
+  userId       String
+  productId    String
+  usagePeriod  Int? // 사용 기간 (월)
+  rating       Float? // 별점 1-5
+  review       String? @db.Text
+  isCurrentUse Boolean @default(true)
+  routineType  String? // MORNING / EVENING / BOTH
+  routineOrder Int? // 루틴 내 순서
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product ProductMaster @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("user_products")
+}
+
+model RoutineAnalysis {
+  id           String @id @default(cuid())
+  userId       String
+  routineType  String // MORNING / EVENING
+  overallScore Float // 루틴 종합 점수
+  resultJson   Json // 분석 결과 (충돌, 시너지, 개선제안)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  analyzedAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("routine_analyses")
+}
+
+model ProductRecommendation {
+  id          String  @id @default(cuid())
+  userId      String
+  productId   String
+  reason      String // 추천 사유
+  fitScore    Float
+  priority    Int // 추천 순위
+  isViewed    Boolean @default(false)
+  isPurchased Boolean @default(false)
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product ProductMaster @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("product_recommendations")
+}
+
+// ============================================================
+// 14. INGREDIENT RELATIONS (성분 관계 - 관리자 고도화)
+// ============================================================
+
+model IngredientSynonym {
+  id           String  @id @default(cuid())
+  ingredientId String
+  synonym      String
+  language     String  @default("ko") // ko, en, inci
+  source       String?
+
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@unique([ingredientId, synonym])
+  @@index([synonym])
+  @@map("ingredient_synonyms")
+}
+
+model IngredientInteraction {
+  id              String  @id @default(cuid())
+  ingredientAId   String
+  ingredientBId   String
+  interactionType String // SYNERGY, CONFLICT, NEUTRAL
+  description     String? @db.Text
+  severity        Int? // 충돌 심각도 1-5
+  evidence        String? @db.Text
+
+  ingredientA Ingredient @relation("InteractionA", fields: [ingredientAId], references: [id])
+  ingredientB Ingredient @relation("InteractionB", fields: [ingredientBId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([ingredientAId, ingredientBId])
+  @@map("ingredient_interactions")
+}
+
+// ============================================================
+// 15. COLLECTED REVIEWS & TRENDS (리뷰 수집 - 관리자 고도화)
+// ============================================================
+
+model CollectedReview {
+  id         String  @id @default(cuid())
+  productId  String
+  source     String // OLIVEYOUNG, HWAHAE, NAVER, INSTAGRAM, YOUTUBE
+  sourceUrl  String?
+  content    String  @db.Text
+  rating     Float?
+  sentiment  String? // POSITIVE, NEGATIVE, NEUTRAL
+  skinType   String?
+  keywords   Json?
+  authorName String?
+
+  product ProductMaster @relation(fields: [productId], references: [id])
+
+  collectedAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([source])
+  @@map("collected_reviews")
+}
+
+model ProductTrend {
+  id         String @id @default(cuid())
+  productId  String
+  period     String // 2026-W10, 2026-03
+  buzzCount  Int // 언급 수
+  trendScore Float // 트렌드 점수
+  sources    Json // 소스별 카운트
+
+  product ProductMaster @relation(fields: [productId], references: [id])
+
+  @@unique([productId, period])
+  @@map("product_trends")
+}
+
+model DataQualityLog {
+  id          String @id @default(cuid())
+  entityType  String // PRODUCT, INGREDIENT, REVIEW
+  totalCount  Int
+  missingRate Float // 누락률
+  details     Json? // 상세 항목별 누락률
+
+  checkedAt DateTime @default(now())
+
+  @@map("data_quality_logs")
+}
+
+// ============================================================
+// 16. PARTNER MARKETPLACE (파트너 오픈마켓 - 고도화)
+// ============================================================
+
+model ProductVariant {
+  id               String  @id @default(cuid())
+  partnerProductId String
+  sku              String  @unique
+  optionName       String // "50ml", "100ml"
+  optionType       String // SIZE, COLOR, TYPE
+  price            Int // 판매가 (원)
+  originalPrice    Int? // 정가
+  stock            Int     @default(0)
+  lowStockAlert    Int     @default(5)
+  isActive         Boolean @default(true)
+
+  partnerProduct PartnerProduct @relation(fields: [partnerProductId], references: [id], onDelete: Cascade)
+  priceHistory   PriceHistory[]
+  inventoryLogs  InventoryLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerProductId])
+  @@map("product_variants")
+}
+
+model ProductImage {
+  id               String  @id @default(cuid())
+  partnerProductId String
+  imageUrl         String
+  sortOrder        Int     @default(0)
+  isMain           Boolean @default(false)
+  alt              String?
+
+  partnerProduct PartnerProduct @relation(fields: [partnerProductId], references: [id], onDelete: Cascade)
+
+  @@index([partnerProductId])
+  @@map("product_images")
+}
+
+model ProductDescription {
+  id               String  @id @default(cuid())
+  partnerProductId String  @unique
+  content          String  @db.Text // 리치 텍스트
+  shortDesc        String?
+  highlights       Json? // 특장점 리스트
+
+  partnerProduct PartnerProduct @relation(fields: [partnerProductId], references: [id], onDelete: Cascade)
+
+  @@map("product_descriptions")
+}
+
+model PriceHistory {
+  id        String  @id @default(cuid())
+  variantId String
+  oldPrice  Int
+  newPrice  Int
+  reason    String?
+
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  changedAt DateTime @default(now())
+
+  @@index([variantId])
+  @@map("price_histories")
+}
+
+model InventoryLog {
+  id        String  @id @default(cuid())
+  variantId String
+  type      String // IN, OUT, ADJUST
+  quantity  Int
+  reason    String?
+
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([variantId])
+  @@map("inventory_logs")
+}
+
+model Coupon {
+  id             String   @id @default(cuid())
+  partnerId      String
+  code           String   @unique
+  name           String
+  discountType   String // FIXED, PERCENTAGE
+  discountValue  Int // 할인액 or 할인율(%)
+  minOrderAmount Int?
+  maxDiscount    Int?
+  usageLimit     Int?
+  usedCount      Int      @default(0)
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean  @default(true)
+
+  partner Partner       @relation(fields: [partnerId], references: [id])
+  usages  CouponUsage[]
+
+  createdAt DateTime @default(now())
+
+  @@index([partnerId])
+  @@index([code])
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id       String  @id @default(cuid())
+  couponId String
+  userId   String
+  orderId  String?
+
+  coupon Coupon @relation(fields: [couponId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  usedAt DateTime @default(now())
+
+  @@map("coupon_usages")
+}
+
+model Promotion {
+  id        String   @id @default(cuid())
+  partnerId String
+  type      String // TIMEDEAL, BUNDLE, EVENT
+  title     String
+  startDate DateTime
+  endDate   DateTime
+  config    Json // 프로모션별 설정
+  isActive  Boolean  @default(true)
+
+  partner  Partner            @relation(fields: [partnerId], references: [id])
+  products PromotionProduct[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId])
+  @@map("promotions")
+}
+
+model PromotionProduct {
+  id               String @id @default(cuid())
+  promotionId      String
+  partnerProductId String
+  specialPrice     Int?
+
+  promotion      Promotion      @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  partnerProduct PartnerProduct @relation(fields: [partnerProductId], references: [id])
+
+  @@unique([promotionId, partnerProductId])
+  @@map("promotion_products")
 }

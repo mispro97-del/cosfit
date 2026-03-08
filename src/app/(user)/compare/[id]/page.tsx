@@ -7,8 +7,10 @@
 // ============================================================
 
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
-// import { fetchCompareResult } from "../actions";
+import { notFound, redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { fetchCompareResult } from "../actions";
 import { CompareReportClient } from "./CompareReportClient";
 
 interface PageProps {
@@ -16,23 +18,24 @@ interface PageProps {
 }
 
 export default async function CompareReportPage({ params }: PageProps) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
   const compareId = params.id;
+  const result = await fetchCompareResult(compareId);
+  if (!result.success || !result.data) notFound();
 
-  // DB 연결 시:
-  // const result = await fetchCompareResult("current-user-id", compareId);
-  // if (!result.success || !result.data) notFound();
-  // return <CompareReportClient data={result.data} />;
-
-  // Mock 모드:
   return (
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin w-8 h-8 border-3 border-t-[#C4816A] border-[#EDE6DF] rounded-full" />
+          <div className="animate-spin w-8 h-8 border-3 border-t-[#10B981] border-[#E5E7EB] rounded-full" />
         </div>
       }
     >
-      <CompareReportClient compareId={compareId} />
+      <CompareReportClient data={result.data} />
     </Suspense>
   );
 }

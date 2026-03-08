@@ -58,7 +58,7 @@ export function AnalyzingScreen({ onComplete }: { onComplete: () => void }) {
             className="absolute rounded-full"
             style={{
               inset: i * 12,
-              border: `2px solid ${i === 0 ? "#C4816A" : i === 1 ? "#E8D4CA" : "#EDE6DF"}`,
+              border: `2px solid ${i === 0 ? "#10B981" : i === 1 ? "#A7F3D0" : "#E5E7EB"}`,
               borderTopColor: "transparent",
               animation: `spin ${1.5 + i * 0.5}s linear infinite${i === 1 ? " reverse" : ""}`,
             }}
@@ -75,7 +75,7 @@ export function AnalyzingScreen({ onComplete }: { onComplete: () => void }) {
       {/* Phase text */}
       <p
         key={phase}
-        className="text-base font-medium text-[#2D2420] mb-6 leading-relaxed"
+        className="text-base font-medium text-[#1F2937] mb-6 leading-relaxed"
         style={{ animation: "fadeInUp 0.4s ease both" }}
       >
         {PHASES[phase].text}
@@ -83,18 +83,18 @@ export function AnalyzingScreen({ onComplete }: { onComplete: () => void }) {
 
       {/* Progress bar */}
       <div className="w-full max-w-[280px]">
-        <div className="h-1.5 rounded-sm bg-[#EDE6DF] overflow-hidden mb-2">
+        <div className="h-1.5 rounded-sm bg-[#E5E7EB] overflow-hidden mb-2">
           <div
             className="h-full rounded-sm transition-all duration-300"
             style={{
               width: `${Math.min(progress, 100)}%`,
               background: progress >= 100
-                ? "#6B9E7D"
-                : "linear-gradient(90deg, #C4816A, #A66B55)",
+                ? "#10B981"
+                : "linear-gradient(90deg, #10B981, #059669)",
             }}
           />
         </div>
-        <p className="text-[13px] text-[#8B7E76] m-0">
+        <p className="text-[13px] text-[#6B7280] m-0">
           {Math.min(Math.round(progress), 100)}%
         </p>
       </div>

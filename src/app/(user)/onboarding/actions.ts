@@ -6,6 +6,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { generateUserStandard } from "@/lib/analysis";
 
@@ -34,14 +36,22 @@ interface ActionResult<T = void> {
   error?: string;
 }
 
+// ── Auth Helper ──
+async function getAuthenticatedUserId(): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  return session?.user?.id ?? null;
+}
+
 // ────────────────────────────────────────────────────────────
 // Action 1: 피부 프로필 저장 (S1-1 ~ S1-3)
 // ────────────────────────────────────────────────────────────
 
 export async function saveSkinProfile(
-  userId: string,
   input: SkinProfileInput
 ): Promise<ActionResult> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     if (!input.skinType) {
       return { success: false, error: "피부 타입을 선택해주세요." };
@@ -88,9 +98,11 @@ export async function saveSkinProfile(
 // ────────────────────────────────────────────────────────────
 
 export async function registerHolyGrailProduct(
-  userId: string,
   product: HolyGrailProductInput
 ): Promise<ActionResult<{ productId: string; totalRegistered: number }>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     if (!product.productId && !product.customName) {
       return { success: false, error: "제품을 선택하거나 이름을 입력해주세요." };
@@ -152,9 +164,11 @@ export async function registerHolyGrailProduct(
 // ────────────────────────────────────────────────────────────
 
 export async function removeHolyGrailProduct(
-  userId: string,
   holyGrailId: string
 ): Promise<ActionResult> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     await prisma.holyGrailProduct.delete({
       where: {
@@ -175,9 +189,10 @@ export async function removeHolyGrailProduct(
 // Action 4: User Standard 생성 트리거 (S3-1)
 // ────────────────────────────────────────────────────────────
 
-export async function triggerStandardGeneration(
-  userId: string
-): Promise<ActionResult<{ standardId: string; confidence: number }>> {
+export async function triggerStandardGeneration(): Promise<ActionResult<{ standardId: string; confidence: number }>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const holyGrails = await prisma.holyGrailProduct.findMany({
       where: { userId },
@@ -264,9 +279,11 @@ export async function triggerStandardGeneration(
 // ────────────────────────────────────────────────────────────
 
 export async function skipOnboarding(
-  userId: string,
   skipTo: "PRODUCTS" | "COMPLETE"
 ): Promise<ActionResult> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const status = skipTo === "PRODUCTS" ? "SKIN_PROFILED" : "COMPLETED";
     await prisma.user.update({

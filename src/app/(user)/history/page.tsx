@@ -7,8 +7,11 @@
 // ============================================================
 
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { HistoryClient } from "./HistoryClient";
-// import { fetchCompareHistory } from "../compare/actions";
+import { fetchCompareHistory } from "../compare/actions";
 
 export const metadata = {
   title: "분석 히스토리 | COSFIT",
@@ -16,9 +19,13 @@ export const metadata = {
 };
 
 export default async function HistoryPage() {
-  // DB 연결 시:
-  // const result = await fetchCompareHistory("current-user-id");
-  // const items = result.success ? result.data?.items ?? [] : [];
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const result = await fetchCompareHistory();
+  const items = result.success ? result.data?.items ?? [] : [];
 
   return (
     <div>
@@ -31,12 +38,11 @@ export default async function HistoryPage() {
       <Suspense
         fallback={
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-[3px] border-t-[#C4816A] border-[#EDE6DF] rounded-full animate-spin" />
+            <div className="w-8 h-8 border-[3px] border-t-[#10B981] border-[#EDE6DF] rounded-full animate-spin" />
           </div>
         }
       >
-        {/* DB 연결 시: <HistoryClient items={items} /> */}
-        <HistoryClient />
+        <HistoryClient items={items} />
       </Suspense>
     </div>
   );

@@ -60,8 +60,8 @@ export default async function SharedReportPage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-screen bg-[#FDFBF9]">
-          <div className="animate-spin w-8 h-8 border-[3px] border-t-[#C4816A] border-[#EDE6DF] rounded-full" />
+        <div className="flex items-center justify-center min-h-screen bg-[#FFFFFF]">
+          <div className="animate-spin w-8 h-8 border-[3px] border-t-[#10B981] border-[#EDE6DF] rounded-full" />
         </div>
       }
     >

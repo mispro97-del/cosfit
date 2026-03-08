@@ -47,11 +47,11 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-[440px] mx-auto min-h-screen bg-[#FDFBF9] flex flex-col items-center justify-center px-5">
+      <div className="max-w-[440px] mx-auto min-h-screen bg-[#FFFFFF] flex flex-col items-center justify-center px-5">
         <span className="text-5xl mb-4">🛒</span>
         <p className="text-base font-semibold text-[#2D2420] mb-2">장바구니가 비어있어요</p>
         <p className="text-sm text-[#8B7E76] mb-6">FIT Score가 높은 제품을 담아보세요!</p>
-        <Link href="/history" className="px-6 py-3 rounded-2xl bg-[#C4816A] text-white font-semibold no-underline text-sm">
+        <Link href="/history" className="px-6 py-3 rounded-2xl bg-[#10B981] text-white font-semibold no-underline text-sm">
           분석 결과 보러가기
         </Link>
       </div>
@@ -59,7 +59,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-[440px] mx-auto min-h-screen bg-[#FDFBF9] px-5 pt-5 pb-32">
+    <div className="max-w-[440px] mx-auto min-h-screen bg-[#FFFFFF] px-5 pt-5 pb-32">
       <h1 className="text-lg font-bold text-[#2D2420] m-0">🛒 장바구니</h1>
       <p className="text-[13px] text-[#8B7E76] mt-1 mb-4">{items.length}개 상품</p>
 
@@ -139,15 +139,15 @@ export default function CartPage() {
         </div>
         <div className="flex justify-between text-base font-bold text-[#2D2420] border-t border-[#EDE6DF] pt-2.5 mt-1">
           <span>총 결제금액</span>
-          <span className="text-[#C4816A]">{total.toLocaleString()}원</span>
+          <span className="text-[#10B981]">{total.toLocaleString()}원</span>
         </div>
       </div>
 
       {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] px-5 pb-6 pt-3 bg-gradient-to-t from-[#FDFBF9] via-[#FDFBF9] to-transparent">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] px-5 pb-6 pt-3 bg-gradient-to-t from-[#FFFFFF] via-[#FFFFFF] to-transparent">
         <Link
           href="/shop/checkout"
-          className="w-full flex items-center justify-center py-3.5 rounded-2xl no-underline text-[15px] font-bold text-white bg-gradient-to-br from-[#C4816A] to-[#A66B55] shadow-[0_4px_20px_rgba(196,129,106,0.3)]"
+          className="w-full flex items-center justify-center py-3.5 rounded-2xl no-underline text-[15px] font-bold text-white bg-gradient-to-br from-[#10B981] to-[#059669] shadow-[0_4px_20px_rgba(16,185,129,0.3)]"
         >
           {total.toLocaleString()}원 결제하기
         </Link>

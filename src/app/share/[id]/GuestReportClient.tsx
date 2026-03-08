@@ -33,8 +33,8 @@ const GRADE_CONFIG: Record<string, { label: string; color: string; bg: string; e
   PERFECT: { label: "PERFECT FIT", color: "#6B9E7D", bg: "#EDF5F0", emoji: "🎯", msg: "이 제품은 최고의 궁합이에요!" },
   GOOD:    { label: "GOOD FIT",    color: "#6B9E7D", bg: "#EDF5F0", emoji: "👍", msg: "전반적으로 잘 맞는 제품이에요." },
   FAIR:    { label: "FAIR",        color: "#C4A83D", bg: "#FDF8E8", emoji: "🤔", msg: "일부 성분 확인이 필요해요." },
-  POOR:    { label: "POOR FIT",    color: "#D4665A", bg: "#FDF0EE", emoji: "⚠️", msg: "주의가 필요한 제품이에요." },
-  RISK:    { label: "RISK",        color: "#D4665A", bg: "#FDF0EE", emoji: "🚫", msg: "맞지 않을 가능성이 높아요." },
+  POOR:    { label: "POOR FIT",    color: "#EF4444", bg: "#FEF2F2", emoji: "⚠️", msg: "주의가 필요한 제품이에요." },
+  RISK:    { label: "RISK",        color: "#EF4444", bg: "#FEF2F2", emoji: "🚫", msg: "맞지 않을 가능성이 높아요." },
 };
 
 const CAT_EMOJI: Record<string, string> = {
@@ -83,7 +83,7 @@ export function GuestReportClient({ data, compareId }: Props) {
   }, [r.fitScore, circumference]);
 
   return (
-    <div className="max-w-[440px] mx-auto min-h-screen bg-[#FDFBF9] relative">
+    <div className="max-w-[440px] mx-auto min-h-screen bg-[#FFFFFF] relative">
       <style>{`
         @keyframes fadeInUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
       `}</style>
@@ -91,7 +91,7 @@ export function GuestReportClient({ data, compareId }: Props) {
       {/* Header */}
       <header className="px-5 py-3.5 border-b border-[#EDE6DF] flex items-center gap-2">
         <span className="text-lg font-extrabold tracking-tight text-[#2D2420]">COSFIT</span>
-        <span className="text-xs px-2 py-0.5 rounded-md font-medium bg-[#F5EDE8] text-[#A66B55]">
+        <span className="text-xs px-2 py-0.5 rounded-md font-medium bg-[#F5EDE8] text-[#059669]">
           공유된 리포트
         </span>
         <div className="flex-1" />
@@ -203,7 +203,7 @@ export function GuestReportClient({ data, compareId }: Props) {
           </div>
 
           {/* Overlay CTA */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#FDFBF9]/70">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#FFFFFF]/70">
             <span className="text-2xl mb-2">🔒</span>
             <p className="text-sm font-semibold text-[#2D2420] mb-1">
               상세 분석은 회원만 볼 수 있어요
@@ -216,10 +216,10 @@ export function GuestReportClient({ data, compareId }: Props) {
       </div>
 
       {/* Fixed bottom CTA */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] px-6 pb-7 pt-3 bg-gradient-to-t from-[#FDFBF9] via-[#FDFBF9] to-transparent z-40">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] px-6 pb-7 pt-3 bg-gradient-to-t from-[#FFFFFF] via-[#FFFFFF] to-transparent z-40">
         <Link
           href="/onboarding"
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-none text-base font-semibold no-underline bg-gradient-to-br from-[#C4816A] to-[#A66B55] text-white shadow-[0_4px_20px_rgba(196,129,106,0.35)]"
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-none text-base font-semibold no-underline bg-gradient-to-br from-[#10B981] to-[#059669] text-white shadow-[0_4px_20px_rgba(16,185,129,0.35)]"
         >
           <span>👤</span>
           무료로 시작하기

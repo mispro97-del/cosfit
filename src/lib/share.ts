@@ -162,7 +162,7 @@ export async function captureElementAsImage(
     const dataUrl = await toPng(element, {
       quality: 0.95,
       pixelRatio: 2,
-      backgroundColor: "#FDFBF9",
+      backgroundColor: "#FFFFFF",
     });
 
     const link = document.createElement("a");
@@ -181,7 +181,7 @@ export async function captureElementAsImage(
     if (!ctx) throw new Error("Canvas context unavailable");
 
     ctx.scale(scale, scale);
-    ctx.fillStyle = "#FDFBF9";
+    ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(0, 0, element.offsetWidth, element.offsetHeight);
 
     // SVG foreignObject approach

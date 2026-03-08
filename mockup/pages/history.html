@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>COSFIT — 분석 기록</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .page-header {
+      padding: 20px 24px 0;
+    }
+    .page-title {
+      font-size: 22px; font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.02em; margin-bottom: 4px;
+    }
+    .page-subtitle {
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .cat-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 20px;
+      background: var(--brand-pale);
+      font-size: 11px; font-weight: 500;
+      color: var(--brand-dark);
+    }
+
+    /* Loading skeleton */
+    .skeleton-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: white;
+      margin-bottom: 10px;
+    }
+    .skel { background: var(--gradient-skeleton); background-size: 400px 100%; animation: shimmer 1.5s linear infinite; border-radius: 6px; }
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Header -->
+  <header class="nav-header">
+    <span class="nav-logo">COSFIT</span>
+    <button class="nav-back" style="margin-left:0; margin-right:0; font-size:16px; width:auto; height:auto; border-radius:8px; padding:6px 12px; color:var(--text-secondary); border:1px solid var(--border); font-size:12px; font-weight:600;">+ 분석하기</button>
+  </header>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">분석 기록</h1>
+    <p class="page-subtitle">총 6개의 분석 결과</p>
+  </div>
+
+  <!-- Toggle: Normal / Loading state button -->
+  <div style="padding: 12px 24px 0; display:flex; gap:8px; align-items:center;">
+    <button onclick="toggleLoading()" style="font-size:11px; padding:4px 10px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-secondary); cursor:pointer; font-weight:600;">로딩 상태 토글</button>
+    <button onclick="toggleEmpty()" style="font-size:11px; padding:4px 10px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-secondary); cursor:pointer; font-weight:600;">빈 상태 토글</button>
+  </div>
+
+  <div class="page-content" style="padding-top:16px;">
+
+    <!-- Normal content -->
+    <div id="normal-content">
+      <!-- Stats row -->
+      <div class="stats-row animate-fade-in-up">
+        <div class="stat-card" style="background:var(--brand-pale);">
+          <div class="stat-number" style="color:var(--brand);">74</div>
+          <div class="stat-label">평균 FIT Score</div>
+        </div>
+        <div class="stat-card" style="background:var(--perfect-bg);">
+          <div class="stat-number" style="color:var(--perfect);">3</div>
+          <div class="stat-label">Good 이상</div>
+        </div>
+        <div class="stat-card" style="background:var(--risk-bg);">
+          <div class="stat-number" style="color:var(--risk);">2</div>
+          <div class="stat-label">주의 필요</div>
+        </div>
+      </div>
+
+      <!-- Filter chips -->
+      <div class="filter-row animate-fade-in-up stagger-1">
+        <button class="filter-pill active" onclick="filterBy('ALL', this)">전체</button>
+        <button class="filter-pill perfect" onclick="filterBy('PERFECT', this)">Perfect</button>
+        <button class="filter-pill perfect" onclick="filterBy('GOOD', this)">Good</button>
+        <button class="filter-pill fair" onclick="filterBy('FAIR', this)">Fair</button>
+        <button class="filter-pill risk" onclick="filterBy('POOR', this)">Poor</button>
+        <button class="filter-pill risk" onclick="filterBy('RISK', this)">Risk</button>
+      </div>
+
+      <!-- History list -->
+      <div id="history-list" style="display:flex; flex-direction:column; gap:10px;">
+
+        <a class="history-card animate-fade-in-up stagger-1" href="compare-report.html">
+          <div class="score-badge" style="background:var(--perfect-bg);">
+            <span class="score-num" style="color:var(--perfect);">82</span>
+            <span class="score-grade" style="color:var(--perfect);">GOOD</span>
+          </div>
+          <div class="history-info">
+            <div class="history-name">에스트라 아토베리어 365 크림</div>
+            <div class="history-brand">에스트라 · <span class="cat-pill">🧴 크림</span></div>
+            <div class="history-meta">
+              <span style="color:var(--perfect);">✅ 5</span>
+              <span style="color:var(--risk);">⚠️ 2</span>
+              <span style="color:var(--text-muted);">2일 전</span>
+            </div>
+          </div>
+          <span class="history-chevron">›</span>
+        </a>
+
+        <a class="history-card animate-fade-in-up stagger-2" href="compare-report.html">
+          <div class="score-badge" style="background:var(--perfect-bg);">
+            <span class="score-num" style="color:var(--perfect);">91</span>
+            <span class="score-grade" style="color:var(--perfect);">PERFECT</span>
+          </div>
+          <div class="history-info">
+            <div class="history-name">토리든 다이브인 세럼</div>
+            <div class="history-brand">토리든 · <span class="cat-pill">💧 세럼</span></div>
+            <div class="history-meta">
+              <span style="color:var(--perfect);">✅ 7</span>
+              <span style="color:var(--text-muted);">3일 전</span>
+            </div>
+          </div>
+          <span class="history-chevron">›</span>
+        </a>
+
+        <a class="history-card animate-fade-in-up stagger-3" href="compare-report.html">
+          <div class="score-badge" style="background:var(--fair-bg);">
+            <span class="score-num" style="color:var(--fair);">68</span>
+            <span class="score-grade" style="color:var(--fair);">FAIR</span>
+          </div>
+          <div class="history-info">
+            <div class="history-name">구달 맑은 비타C 잡티 세럼</div>
+            <div class="history-brand">구달 · <span class="cat-pill">💧 세럼</span></div>
+            <div class="history-meta">
+              <span style="color:var(--perfect);">✅ 3</span>
+              <span style="color:var(--risk);">⚠️ 3</span>
+              <span style="color:var(--text-muted);">4일 전</span>
+            </div>
+          </div>
+          <span class="history-chevron">›</span>
+        </a>
+
+        <a class="history-card animate-fade-in-up stagger-4" href="compare-report.html">
+          <div class="score-badge" style="background:var(--risk-bg);">
+            <span class="score-num" style="color:var(--risk);">45</span>
+            <span class="score-grade" style="color:var(--risk);">POOR</span>
+          </div>
+          <div class="history-info">
+            <div class="history-name">바이오더마 센시비오 클렌징워터</div>
+            <div class="history-brand">바이오더마 · <span class="cat-pill">🫧 클렌저</span></div>
+            <div class="history-meta">
+              <span style="color:var(--perfect);">✅ 2</span>
+              <span style="color:var(--risk);">⚠️ 4</span>
+              <span style="color:var(--text-muted);">5일 전</span>
+            </div>
+          </div>
+          <span class="history-chevron">›</span>
+        </a>
+
+        <a class="history-card animate-fade-in-up stagger-5" href="compare-report.html">
+          <div class="score-badge" style="background:var(--perfect-bg);">
+            <span class="score-num" style="color:var(--perfect);">87</span>
+            <span class="score-grade" style="color:var(--perfect);">PERFECT</span>
+          </div>
+          <div class="history-info">
+            <div class="history-name">코스알엑스 스네일 뮤신 에센스</div>
+            <div class="history-brand">COSRX · <span class="cat-pill">💧 세럼</span></div>
+            <div class="history-meta">
+              <span style="color:var(--perfect);">✅ 6</span>
+              <span style="color:var(--risk);">⚠️ 1</span>
+              <span style="color:var(--text-muted);">6일 전</span>
+            </div>
+          </div>
+          <span class="history-chevron">›</span>
+        </a>
+
+        <a class="history-card animate-fade-in-up" style="animation-delay:0.3s;" href="compare-report.html">
+          <div class="score-badge" style="background:var(--risk-bg);">
+            <span class="score-num" style="color:var(--risk);">24</span>
+            <span class="score-grade" style="color:var(--risk);">RISK</span>
+          </div>
+          <div class="history-info">
+            <div class="history-name">넘버즈인 3번 글루타치온 세럼</div>
+            <div class="history-brand">넘버즈인 · <span class="cat-pill">💧 세럼</span></div>
+            <div class="history-meta">
+              <span style="color:var(--perfect);">✅ 1</span>
+              <span style="color:var(--risk);">⚠️ 5</span>
+              <span style="color:var(--text-muted);">1주 전</span>
+            </div>
+          </div>
+          <span class="history-chevron">›</span>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Loading skeleton -->
+    <div id="loading-content" style="display:none;">
+      <div class="stats-row">
+        <div class="stat-card"><div class="skel" style="height:32px; margin-bottom:6px;"></div><div class="skel" style="height:12px;width:60%;margin:0 auto;"></div></div>
+        <div class="stat-card"><div class="skel" style="height:32px; margin-bottom:6px;"></div><div class="skel" style="height:12px;width:60%;margin:0 auto;"></div></div>
+        <div class="stat-card"><div class="skel" style="height:32px; margin-bottom:6px;"></div><div class="skel" style="height:12px;width:60%;margin:0 auto;"></div></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <div class="skel" style="width:48px;height:32px;border-radius:20px;"></div>
+        <div class="skel" style="width:64px;height:32px;border-radius:20px;"></div>
+        <div class="skel" style="width:56px;height:32px;border-radius:20px;"></div>
+      </div>
+      <div class="skeleton-row"><div class="skel" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div><div style="flex:1;"><div class="skel" style="height:16px;margin-bottom:8px;width:70%;"></div><div class="skel" style="height:12px;width:45%;"></div></div></div>
+      <div class="skeleton-row"><div class="skel" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div><div style="flex:1;"><div class="skel" style="height:16px;margin-bottom:8px;width:80%;"></div><div class="skel" style="height:12px;width:50%;"></div></div></div>
+      <div class="skeleton-row"><div class="skel" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div><div style="flex:1;"><div class="skel" style="height:16px;margin-bottom:8px;width:65%;"></div><div class="skel" style="height:12px;width:40%;"></div></div></div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-content" style="display:none;">
+      <div class="empty-state">
+        <div class="empty-icon-wrap">✨</div>
+        <h3 style="font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:8px;">아직 분석 기록이 없어요</h3>
+        <p style="font-size:14px; color:var(--text-secondary); text-align:center; line-height:1.6; margin-bottom:24px;">
+          화장품 성분을 분석하고<br>나만의 FIT 기록을 만들어보세요
+        </p>
+        <button class="btn-secondary">분석 시작하기</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <a class="bottom-nav-item" href="#">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      홈
+    </a>
+    <a class="bottom-nav-item" href="#">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      비교
+    </a>
+    <a class="bottom-nav-item active" href="#">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      기록
+    </a>
+    <a class="bottom-nav-item" href="#">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      내정보
+    </a>
+  </nav>
+
+</div>
+
+<script>
+  function filterBy(grade, btn) {
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const cards = document.querySelectorAll('.history-card');
+    cards.forEach(c => c.style.display = 'flex');
+  }
+
+  let loadingOn = false;
+  let emptyOn = false;
+
+  function toggleLoading() {
+    loadingOn = !loadingOn;
+    document.getElementById('normal-content').style.display = loadingOn ? 'none' : 'block';
+    document.getElementById('loading-content').style.display = loadingOn ? 'block' : 'none';
+    document.getElementById('empty-content').style.display = 'none';
+    if (loadingOn) emptyOn = false;
+  }
+
+  function toggleEmpty() {
+    emptyOn = !emptyOn;
+    document.getElementById('normal-content').style.display = emptyOn ? 'none' : 'block';
+    document.getElementById('empty-content').style.display = emptyOn ? 'block' : 'none';
+    document.getElementById('loading-content').style.display = 'none';
+    if (emptyOn) loadingOn = false;
+  }
+</script>
+</body>
+</html>

@@ -78,7 +78,7 @@ export function OnboardingWizard() {
     } else {
       // 피부 프로필 저장 후 인생템 등록으로 이동
       startTransition(async () => {
-        const result = await saveSkinProfile("current-user-id", {
+        const result = await saveSkinProfile({
           skinType: skinProfile.skinType as any,
           skinConcerns: skinProfile.skinConcerns,
           sensitivityLevel: skinProfile.sensitivityLevel!,
@@ -97,7 +97,7 @@ export function OnboardingWizard() {
       nextAnim();
     } else {
       startTransition(async () => {
-        await skipOnboarding("current-user-id", "PRODUCTS");
+        await skipOnboarding("PRODUCTS");
         setView("products");
         nextAnim();
       });
@@ -120,7 +120,7 @@ export function OnboardingWizard() {
     setRegistered((prev) => [...prev, product]);
 
     startTransition(async () => {
-      await registerHolyGrailProduct("current-user-id", {
+      await registerHolyGrailProduct({
         productId: product.id,
         customName: product.name,
         customBrand: product.brand,
@@ -132,7 +132,7 @@ export function OnboardingWizard() {
   const handleRemove = useCallback((id: string) => {
     setRegistered((prev) => prev.filter((p) => p.id !== id));
     startTransition(async () => {
-      await removeHolyGrailProduct("current-user-id", id);
+      await removeHolyGrailProduct(id);
     });
   }, []);
 
@@ -145,7 +145,7 @@ export function OnboardingWizard() {
 
   const handleAnalysisComplete = useCallback(() => {
     startTransition(async () => {
-      const result = await triggerStandardGeneration("current-user-id");
+      const result = await triggerStandardGeneration();
       if (result.success && result.data) {
         setStandardResult(result.data);
       }
@@ -160,24 +160,26 @@ export function OnboardingWizard() {
 
   // ── Render ──
   return (
-    <div className="max-w-[440px] mx-auto min-h-screen bg-[#FDFBF9] relative overflow-hidden">
-      {/* Header */}
+    <div className="relative overflow-hidden">
+      {/* Onboarding Header */}
       {view !== "analyzing" && (
-        <header className="sticky top-0 z-50 px-5 py-4 bg-[#FDFBF9]/90 backdrop-blur-xl border-b border-[#EDE6DF] flex items-center justify-between">
+        <header className="flex items-center justify-between py-3">
           <div className="flex items-center gap-2">
             {(view === "products" || step > 0) && (
               <button
                 onClick={handleBack}
-                className="text-xl text-[#8B7E76] bg-transparent border-none cursor-pointer px-2 py-1 hover:text-[#2D2420] transition-colors"
+                className="text-[#6B7280] bg-transparent border-none cursor-pointer p-1 hover:text-[#1F2937] transition-colors rounded-lg hover:bg-[#F3F4F6]"
               >
-                ←
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
               </button>
             )}
-            <span className="text-xl font-extrabold tracking-tight text-[#2D2420]">
+            <span className="text-lg font-extrabold tracking-tight text-[#1F2937]">
               COSFIT
             </span>
           </div>
-          <span className="text-sm text-[#B5AAA2]">
+          <span className="text-sm text-[#9CA3AF] font-medium">
             {view === "onboarding" ? `STEP ${step + 1} / 3` : "인생템 등록"}
           </span>
         </header>
@@ -187,7 +189,7 @@ export function OnboardingWizard() {
       {view === "onboarding" && <ProgressDots current={step} total={3} />}
 
       {/* Content */}
-      <main className="px-6 pt-2 pb-28" key={animKey}>
+      <div className="pt-2 pb-28" key={animKey}>
         {view === "onboarding" && step === 0 && (
           <SkinTypeStep value={skinProfile.skinType} onChange={(v) => updateProfile({ skinType: v })} />
         )}
@@ -213,15 +215,24 @@ export function OnboardingWizard() {
             standardResult={standardResult}
           />
         )}
-      </main>
+      </div>
 
       {/* Bottom action bar */}
       {view !== "analyzing" && view !== "complete" && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] px-6 pb-7 pt-3 bg-gradient-to-t from-[#FDFBF9] via-[#FDFBF9] to-transparent z-40">
+        <div
+          className="fixed bottom-0 z-40 px-6 pb-7 pt-3"
+          style={{
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "100%",
+            maxWidth: "440px",
+            background: "linear-gradient(to top, #FFFFFF 70%, transparent)",
+          }}
+        >
           {view === "onboarding" && (
             <>
               <PrimaryButton onClick={handleNext} disabled={!canProceed() || isPending}>
-                {isPending ? "저장 중..." : step < 2 ? "다음" : "인생템 등록하기 →"}
+                {isPending ? "저장 중..." : step < 2 ? "다음" : "인생템 등록하기"}
               </PrimaryButton>
               <div className="text-center mt-1">
                 <SkipButton onClick={handleSkip} />
@@ -232,7 +243,7 @@ export function OnboardingWizard() {
             <PrimaryButton onClick={handleStartAnalysis} disabled={registered.length < 2}>
               {registered.length < 2
                 ? `${2 - registered.length}개 더 등록해주세요`
-                : `분석 시작하기 (${registered.length}개 등록됨) →`}
+                : `분석 시작하기 (${registered.length}개 등록됨)`}
             </PrimaryButton>
           )}
         </div>

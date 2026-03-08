@@ -6,8 +6,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { sendOrderConfirmEmail } from "@/lib/email/mailer";
+
+// ── Auth Helper ──
+async function getAuthenticatedUserId(): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  return session?.user?.id ?? null;
+}
 
 // ── Types ──
 
@@ -92,7 +100,10 @@ function generateOrderNumber(): string {
 
 // ── Cart Actions ──
 
-export async function fetchCart(userId: string): Promise<ActionResult<CartItemData[]>> {
+export async function fetchCart(): Promise<ActionResult<CartItemData[]>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const items = await prisma.cartItem.findMany({
       where: { userId },
@@ -120,13 +131,15 @@ export async function fetchCart(userId: string): Promise<ActionResult<CartItemDa
 }
 
 export async function addToCart(
-  userId: string,
   productId: string,
   quantity: number,
   unitPrice: number,
   fitScore?: number,
   compareId?: string
 ): Promise<ActionResult<{ cartItemId: string }>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const item = await prisma.cartItem.upsert({
       where: { userId_productId: { userId, productId } },
@@ -147,10 +160,12 @@ export async function addToCart(
 }
 
 export async function updateCartQuantity(
-  userId: string,
   cartItemId: string,
   quantity: number
 ): Promise<ActionResult> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     if (quantity <= 0) {
       await prisma.cartItem.delete({ where: { id: cartItemId, userId } });
@@ -164,7 +179,10 @@ export async function updateCartQuantity(
   }
 }
 
-export async function removeFromCart(userId: string, cartItemId: string): Promise<ActionResult> {
+export async function removeFromCart(cartItemId: string): Promise<ActionResult> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     await prisma.cartItem.delete({ where: { id: cartItemId, userId } });
     revalidatePath("/(user)/shop/cart");
@@ -177,9 +195,11 @@ export async function removeFromCart(userId: string, cartItemId: string): Promis
 // ── Checkout (Transaction) ──
 
 export async function checkout(
-  userId: string,
   input: CheckoutInput
 ): Promise<ActionResult<{ orderId: string; orderNumber: string; pgRedirectUrl: string }>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const result = await prisma.$transaction(async (tx: any) => {
       const cartItems = await tx.cartItem.findMany({
@@ -280,7 +300,10 @@ export async function checkout(
 
 // ── Order History ──
 
-export async function fetchOrders(userId: string): Promise<ActionResult<OrderSummary[]>> {
+export async function fetchOrders(): Promise<ActionResult<OrderSummary[]>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const orders = await prisma.order.findMany({
       where: { userId },
@@ -308,9 +331,11 @@ export async function fetchOrders(userId: string): Promise<ActionResult<OrderSum
 }
 
 export async function fetchOrderDetail(
-  userId: string,
   orderId: string
 ): Promise<ActionResult<OrderDetail>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId, userId },

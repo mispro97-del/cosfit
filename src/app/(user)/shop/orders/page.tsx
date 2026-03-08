@@ -52,7 +52,7 @@ export default function OrdersPage() {
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
-    <div className="max-w-[440px] mx-auto min-h-screen bg-[#FDFBF9] px-5 pt-5 pb-10">
+    <div className="max-w-[440px] mx-auto min-h-screen bg-[#FFFFFF] px-5 pt-5 pb-10">
       <h1 className="text-lg font-bold text-[#2D2420] m-0">📦 주문 내역</h1>
       <p className="text-[13px] text-[#8B7E76] mt-1 mb-4">총 {ORDERS.length}건</p>
 
@@ -102,7 +102,7 @@ export default function OrdersPage() {
                         <div
                           className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
                           style={{
-                            background: i <= step ? "#C4816A" : "#EDE6DF",
+                            background: i <= step ? "#10B981" : "#EDE6DF",
                             color: i <= step ? "#fff" : "#B5AAA2",
                           }}
                         >
@@ -111,7 +111,7 @@ export default function OrdersPage() {
                         {i < TRACK_STEPS.length - 1 && (
                           <div
                             className="flex-1 h-0.5 mx-0.5 rounded"
-                            style={{ background: i < step ? "#C4816A" : "#EDE6DF" }}
+                            style={{ background: i < step ? "#10B981" : "#EDE6DF" }}
                           />
                         )}
                       </div>
@@ -122,7 +122,7 @@ export default function OrdersPage() {
                       <span
                         key={i}
                         className="text-[10px] text-center flex-1"
-                        style={{ color: i <= step ? "#C4816A" : "#B5AAA2" }}
+                        style={{ color: i <= step ? "#10B981" : "#B5AAA2" }}
                       >
                         {s}
                       </span>

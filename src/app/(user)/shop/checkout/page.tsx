@@ -79,7 +79,7 @@ export default function CheckoutPage() {
 
   const fitBadge = (score: number | null) => {
     if (score === null) return null;
-    const color = score >= 80 ? "#6B9E7D" : score >= 60 ? "#C4A83D" : "#D4665A";
+    const color = score >= 80 ? "#6B9E7D" : score >= 60 ? "#C4A83D" : "#EF4444";
     return (
       <span
         className="text-[10px] font-bold px-1.5 py-0.5 rounded-md"
@@ -93,7 +93,7 @@ export default function CheckoutPage() {
   // ── Done state ──
   if (step === "done") {
     return (
-      <div className="max-w-[440px] mx-auto min-h-screen bg-[#FDFBF9] flex flex-col items-center justify-center px-5">
+      <div className="max-w-[440px] mx-auto min-h-screen bg-[#FFFFFF] flex flex-col items-center justify-center px-5">
         <div className="w-20 h-20 rounded-full bg-[#EDF5F0] flex items-center justify-center mb-4">
           <span className="text-3xl">✅</span>
         </div>
@@ -107,7 +107,7 @@ export default function CheckoutPage() {
         <div className="flex gap-3">
           <Link
             href="/shop/orders"
-            className="px-5 py-3 rounded-2xl bg-[#C4816A] text-white font-semibold no-underline text-sm"
+            className="px-5 py-3 rounded-2xl bg-[#10B981] text-white font-semibold no-underline text-sm"
           >
             주문 내역 보기
           </Link>
@@ -125,8 +125,8 @@ export default function CheckoutPage() {
   // ── Processing state ──
   if (step === "processing") {
     return (
-      <div className="max-w-[440px] mx-auto min-h-screen bg-[#FDFBF9] flex flex-col items-center justify-center px-5">
-        <div className="animate-spin w-10 h-10 border-[3px] border-t-[#C4816A] border-[#EDE6DF] rounded-full mb-4" />
+      <div className="max-w-[440px] mx-auto min-h-screen bg-[#FFFFFF] flex flex-col items-center justify-center px-5">
+        <div className="animate-spin w-10 h-10 border-[3px] border-t-[#10B981] border-[#EDE6DF] rounded-full mb-4" />
         <p className="text-base font-semibold text-[#2D2420]">결제를 처리하고 있어요...</p>
         <p className="text-sm text-[#8B7E76] mt-1">잠시만 기다려주세요</p>
       </div>
@@ -135,9 +135,9 @@ export default function CheckoutPage() {
 
   // ── Form state ──
   return (
-    <div className="max-w-[440px] mx-auto min-h-screen bg-[#FDFBF9]">
+    <div className="max-w-[440px] mx-auto min-h-screen bg-[#FFFFFF]">
       {/* Header */}
-      <header className="sticky top-0 z-50 px-4 py-3 bg-[#FDFBF9]/90 backdrop-blur-xl border-b border-[#EDE6DF] flex items-center gap-2">
+      <header className="sticky top-0 z-50 px-4 py-3 bg-[#FFFFFF]/90 backdrop-blur-xl border-b border-[#EDE6DF] flex items-center gap-2">
         <Link href="/shop/cart" className="text-[#8B7E76] text-xl px-2 py-1 no-underline hover:text-[#2D2420]">
           ←
         </Link>
@@ -187,7 +187,7 @@ export default function CheckoutPage() {
                   value={shipping[key as keyof ShippingForm]}
                   onChange={(e) => setShipping((p) => ({ ...p, [key]: e.target.value }))}
                   placeholder={placeholder}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#EDE6DF] text-sm text-[#2D2420] bg-[#FDFBF9] outline-none focus:border-[#C4816A] transition-colors"
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#EDE6DF] text-sm text-[#2D2420] bg-[#FFFFFF] outline-none focus:border-[#10B981] transition-colors"
                 />
               </div>
             ))}
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
               <select
                 value={shipping.memo}
                 onChange={(e) => setShipping((p) => ({ ...p, memo: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-[#EDE6DF] text-sm text-[#2D2420] bg-[#FDFBF9] outline-none"
+                className="w-full px-3 py-2.5 rounded-xl border border-[#EDE6DF] text-sm text-[#2D2420] bg-[#FFFFFF] outline-none"
               >
                 <option value="">선택 안 함</option>
                 <option value="문 앞에 놓아주세요">문 앞에 놓아주세요</option>
@@ -217,9 +217,9 @@ export default function CheckoutPage() {
                 onClick={() => setPayMethod(pm.id)}
                 className="flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-medium cursor-pointer transition-all"
                 style={{
-                  borderColor: payMethod === pm.id ? "#C4816A" : "#EDE6DF",
+                  borderColor: payMethod === pm.id ? "#10B981" : "#EDE6DF",
                   background: payMethod === pm.id ? "#F9F3ED" : "#fff",
-                  color: payMethod === pm.id ? "#A66B55" : "#5A4F48",
+                  color: payMethod === pm.id ? "#059669" : "#5A4F48",
                 }}
               >
                 <span className="text-lg">{pm.icon}</span>
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
           </div>
           <div className="flex justify-between border-t border-[#EDE6DF] pt-3">
             <span className="text-base font-bold text-[#2D2420]">총 결제금액</span>
-            <span className="text-lg font-extrabold text-[#C4816A] tabular-nums">
+            <span className="text-lg font-extrabold text-[#10B981] tabular-nums">
               {total.toLocaleString()}원
             </span>
           </div>
@@ -255,15 +255,15 @@ export default function CheckoutPage() {
       </div>
 
       {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] px-5 pb-6 pt-3 bg-gradient-to-t from-[#FDFBF9] via-[#FDFBF9] to-transparent z-40">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] px-5 pb-6 pt-3 bg-gradient-to-t from-[#FFFFFF] via-[#FFFFFF] to-transparent z-40">
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
           className="w-full py-4 rounded-2xl border-none text-base font-semibold cursor-pointer transition-all"
           style={{
-            background: canSubmit ? "linear-gradient(135deg, #C4816A, #A66B55)" : "#EDE6DF",
+            background: canSubmit ? "linear-gradient(135deg, #10B981, #059669)" : "#EDE6DF",
             color: canSubmit ? "#fff" : "#B5AAA2",
-            boxShadow: canSubmit ? "0 4px 20px rgba(196,129,106,0.35)" : "none",
+            boxShadow: canSubmit ? "0 4px 20px rgba(16,185,129,0.35)" : "none",
           }}
         >
           {total.toLocaleString()}원 결제하기

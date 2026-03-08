@@ -26,30 +26,30 @@ export function CompletionScreen({ registeredCount, standardResult }: Props) {
         <div className="text-[64px] mb-3" style={{ animation: "bounce 0.6s ease" }}>
           🎊
         </div>
-        <h2 className="text-2xl font-extrabold text-[#2D2420] m-0 mb-2">
+        <h2 className="text-2xl font-extrabold text-[#1F2937] m-0 mb-2">
           나만의 뷰티 기준 완성!
         </h2>
-        <p className="text-sm text-[#8B7E76] leading-relaxed">
+        <p className="text-sm text-[#6B7280] leading-relaxed">
           {registeredCount}개 인생템을 분석하여 개인 기준을 만들었어요
         </p>
       </div>
 
       {/* Standard Summary Card */}
       <div
-        className="rounded-[20px] overflow-hidden border border-[#EDE6DF] bg-white mb-4 shadow-[0_4px_24px_rgba(45,36,32,0.06)]"
+        className="rounded-[20px] overflow-hidden border border-[#E5E7EB] bg-white mb-4 shadow-[0_4px_24px_rgba(45,36,32,0.06)]"
         style={{ animation: "fadeInUp 0.5s ease 0.2s both" }}
       >
         {/* Pattern section */}
-        <div className="p-5 pb-4 bg-gradient-to-br from-[#F5EDE8] to-[#F9F3ED]">
+        <div className="p-5 pb-4 bg-gradient-to-br from-[#ECFDF5] to-[#F0FAF6]">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">🧬</span>
-            <h3 className="text-base font-bold text-[#2D2420] m-0">스킨케어 패턴</h3>
+            <h3 className="text-base font-bold text-[#1F2937] m-0">스킨케어 패턴</h3>
           </div>
           <div className="flex gap-2">
             {mockPatterns.map((p) => (
               <span
                 key={p}
-                className="px-3.5 py-1.5 rounded-full bg-white text-[13px] font-semibold text-[#C4816A]"
+                className="px-3.5 py-1.5 rounded-full bg-white text-[13px] font-semibold text-[#10B981]"
               >
                 {p}
               </span>
@@ -60,12 +60,12 @@ export function CompletionScreen({ registeredCount, standardResult }: Props) {
         {/* Preferred ingredients */}
         <div className="p-5">
           <div className="mb-4">
-            <div className="text-[13px] font-semibold text-[#8B7E76] mb-2">✅ 핵심 선호 성분</div>
+            <div className="text-[13px] font-semibold text-[#6B7280] mb-2">✅ 핵심 선호 성분</div>
             <div className="flex flex-wrap gap-1.5">
               {mockPreferred.map((ing) => (
                 <span
                   key={ing}
-                  className="px-3 py-1 rounded-2xl bg-[#EDF5F0] text-[#6B9E7D] text-[13px] font-medium"
+                  className="px-3 py-1 rounded-2xl bg-[#ECFDF5] text-[#10B981] text-[13px] font-medium"
                 >
                   {ing}
                 </span>
@@ -75,19 +75,19 @@ export function CompletionScreen({ registeredCount, standardResult }: Props) {
 
           {/* Confidence */}
           <div className="mb-4">
-            <div className="text-[13px] font-semibold text-[#8B7E76] mb-2">📊 분석 신뢰도</div>
+            <div className="text-[13px] font-semibold text-[#6B7280] mb-2">📊 분석 신뢰도</div>
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-2 rounded-sm bg-[#EDE6DF] overflow-hidden">
+              <div className="flex-1 h-2 rounded-sm bg-[#E5E7EB] overflow-hidden">
                 <div
-                  className="h-full rounded-sm bg-gradient-to-r from-[#C4816A] to-[#6B9E7D]"
+                  className="h-full rounded-sm bg-gradient-to-r from-[#10B981] to-[#10B981]"
                   style={{ width: `${confidencePct}%` }}
                 />
               </div>
-              <span className="text-sm font-bold text-[#C4816A]">{confidencePct}%</span>
+              <span className="text-sm font-bold text-[#10B981]">{confidencePct}%</span>
             </div>
           </div>
 
-          <p className="text-[13px] text-[#8B7E76] leading-relaxed m-0 pt-3 border-t border-[#EDE6DF]">
+          <p className="text-[13px] text-[#6B7280] leading-relaxed m-0 pt-3 border-t border-[#E5E7EB]">
             💬 보습과 진정에 효과적인 성분을 선호해요.
             새 제품을 검색하면 이 기준으로 FIT Score를 받을 수 있어요!
           </p>
@@ -96,11 +96,11 @@ export function CompletionScreen({ registeredCount, standardResult }: Props) {
 
       {/* Tips card */}
       <div
-        className="rounded-2xl p-4 bg-[#F9F3ED] border border-[#EDE6DF] mb-6"
+        className="rounded-2xl p-4 bg-[#F0FAF6] border border-[#E5E7EB] mb-6"
         style={{ animation: "fadeInUp 0.5s ease 0.35s both" }}
       >
-        <div className="text-sm font-semibold text-[#2D2420] mb-2">💡 이런 걸 할 수 있어요</div>
-        <ul className="m-0 pl-5 text-[13px] text-[#8B7E76] leading-loose">
+        <div className="text-sm font-semibold text-[#1F2937] mb-2">💡 이런 걸 할 수 있어요</div>
+        <ul className="m-0 pl-5 text-[13px] text-[#6B7280] leading-loose">
           <li>새 제품 검색 → FIT Score로 나와의 궁합 확인</li>
           <li>성분 기반 맞춤 추천 받기</li>
           <li>인생템 추가 등록으로 정확도 높이기</li>

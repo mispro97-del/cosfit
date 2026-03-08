@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>COSFIT — FIT Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    /* Score hero section */
+    .score-hero {
+      padding: 24px 24px 20px;
+      text-align: center;
+    }
+    .product-row {
+      display: flex; align-items: center;
+      gap: 12px; margin-bottom: 24px;
+      text-align: left;
+    }
+    .product-icon-circle {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: var(--perfect-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .product-name-lg { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+    .product-meta-sm { font-size: 12px; color: var(--text-secondary); }
+
+    /* Confidence badge */
+    .confidence-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+    }
+
+    /* Ingredient item */
+    .ingredient-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .ingredient-row:last-child { border-bottom: none; }
+    .ingredient-row:nth-child(even) { background: var(--bg-warm); }
+    .ing-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .ing-en { font-size: 11px; color: var(--text-muted); margin-left: 6px; }
+    .ing-order { font-size: 11px; color: var(--text-muted); margin-left: auto; min-width: 30px; text-align: right; }
+
+    /* Section indicator dot */
+    .section-dot {
+      width: 4px; border-radius: 2px;
+      flex-shrink: 0; align-self: stretch;
+    }
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Header -->
+  <header class="nav-header">
+    <a class="nav-back" href="history.html">←</a>
+    <span style="font-size:15px; font-weight:700; color:var(--text-primary); letter-spacing:-0.01em;">FIT Report</span>
+    <span class="nav-meta">6월 15일 14:32</span>
+  </header>
+
+  <div style="padding: 0 0 80px;">
+
+    <!-- ── Score Hero ── -->
+    <div class="score-hero">
+
+      <!-- Product info -->
+      <div class="product-row animate-fade-in-up">
+        <div class="product-icon-circle">🧴</div>
+        <div>
+          <div class="product-name-lg">에스트라 아토베리어 365 크림</div>
+          <div class="product-meta-sm">에스트라 · 크림 (CREAM)</div>
+        </div>
+      </div>
+
+      <!-- Gauge -->
+      <div class="score-gauge-wrap animate-fade-in-up stagger-1">
+        <!-- Glow effect -->
+        <div class="score-glow" style="background:var(--perfect);"></div>
+
+        <svg width="160" height="160" viewBox="0 0 128 128" style="position:relative;z-index:1;">
+          <!-- Track -->
+          <circle cx="64" cy="64" r="54" fill="none" stroke="#EDE6DF" stroke-width="10"/>
+          <!-- Score fill (82/100 = 82% of circumference 339.29) -->
+          <circle cx="64" cy="64" r="54" fill="none"
+            stroke="#6B9E7D" stroke-width="10"
+            stroke-dasharray="339.29"
+            stroke-dashoffset="61.07"
+            stroke-linecap="round"
+            transform="rotate(-90 64 64)"
+            style="animation: dashDraw 1s ease-out 0.3s both;"/>
+        </svg>
+
+        <div class="score-center">
+          <span class="score-number" style="color:var(--perfect);">82</span>
+          <span class="score-label" style="color:var(--perfect);">GOOD FIT</span>
+        </div>
+      </div>
+
+      <p style="font-size:15px; font-weight:500; color:var(--text-body); margin-bottom:16px;" class="animate-fade-in-up stagger-2">
+        👍 전반적으로 잘 맞는 제품이에요.
+      </p>
+
+      <!-- Confidence badge -->
+      <div class="animate-fade-in-up stagger-3">
+        <span class="confidence-badge" style="background:rgba(107,158,125,0.10); color:var(--perfect);">
+          🛡️ 데이터 신뢰도: High
+        </span>
+      </div>
+    </div>
+
+    <div style="padding: 0 20px;">
+
+      <!-- ── Breakdown ── -->
+      <div class="breakdown-row animate-fade-in-up stagger-3">
+        <div class="breakdown-chip" style="background:rgba(90,142,196,0.08); border:1px solid rgba(90,142,196,0.15); flex:1;">
+          <div class="breakdown-value" style="color:#5A8EC4;">78.5</div>
+          <div class="breakdown-label">기본</div>
+        </div>
+        <div class="breakdown-chip" style="background:var(--perfect-bg); border:1px solid rgba(107,158,125,0.15); flex:1;">
+          <div class="breakdown-value" style="color:var(--perfect);">+11</div>
+          <div class="breakdown-label">보너스</div>
+        </div>
+        <div class="breakdown-chip" style="background:var(--risk-bg); border:1px solid rgba(212,102,90,0.15); flex:1;">
+          <div class="breakdown-value" style="color:var(--risk);">−13</div>
+          <div class="breakdown-label">감점</div>
+        </div>
+      </div>
+
+      <!-- ── Summary ── -->
+      <div class="summary-card animate-fade-in-up stagger-4">
+        <p style="font-size:13px; color:var(--text-body); line-height:1.7; margin:0;">
+          '에스트라 아토베리어 365 크림'의 FIT Score는 82점 (GOOD)이에요. 선호 성분 5개 매칭: 글리세린, 판테놀, 센텔라아시아티카추출물 등이 포함되어 있어요. ⚠️ 주의 성분: 향료. 패치 테스트를 권장해요. 핵심 선호 성분 누락: 히알루론산.
+        </p>
+      </div>
+
+      <!-- ── Reasons Accordion ── -->
+      <div class="accordion open animate-fade-in-up stagger-4">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <span style="font-size:18px;">✅</span>
+          <span class="accordion-title">잘 맞는 이유</span>
+          <span class="badge badge-perfect">5개</span>
+          <span class="accordion-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+
+            <div class="ingredient-card" style="background:var(--perfect-bg); border:1px solid rgba(107,158,125,0.12);">
+              <div class="ingredient-icon-box" style="background:rgba(107,158,125,0.12);">📈</div>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span style="font-size:14px; font-weight:600; color:var(--text-primary);">글리세린</span>
+                  <span style="font-size:11px; font-weight:600; color:var(--perfect); background:rgba(107,158,125,0.12); padding:2px 6px; border-radius:6px;">+95%</span>
+                </div>
+                <p style="font-size:12px; color:var(--text-secondary); margin:0; line-height:1.5;">선호 성분 포함 (상위 함량, 1번째) — 3/3개 인생템에 공통 포함</p>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">제품 내 1번째 · 상위 함량</div>
+              </div>
+            </div>
+
+            <div class="ingredient-card" style="background:var(--perfect-bg); border:1px solid rgba(107,158,125,0.12);">
+              <div class="ingredient-icon-box" style="background:rgba(107,158,125,0.12);">📈</div>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span style="font-size:14px; font-weight:600; color:var(--text-primary);">판테놀</span>
+                  <span style="font-size:11px; font-weight:600; color:var(--perfect); background:rgba(107,158,125,0.12); padding:2px 6px; border-radius:6px;">+82%</span>
+                </div>
+                <p style="font-size:12px; color:var(--text-secondary); margin:0; line-height:1.5;">선호 성분 포함 (상위 함량, 3번째) — 진정·보습 핵심 성분</p>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">제품 내 3번째 · 상위 함량</div>
+              </div>
+            </div>
+
+            <div class="ingredient-card" style="background:var(--perfect-bg); border:1px solid rgba(107,158,125,0.12);">
+              <div class="ingredient-icon-box" style="background:rgba(107,158,125,0.12);">📈</div>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span style="font-size:14px; font-weight:600; color:var(--text-primary);">센텔라아시아티카추출물</span>
+                  <span style="font-size:11px; font-weight:600; color:var(--perfect); background:rgba(107,158,125,0.12); padding:2px 6px; border-radius:6px;">+65%</span>
+                </div>
+                <p style="font-size:12px; color:var(--text-secondary); margin:0; line-height:1.5;">선호 성분 포함 (중간 함량, 8번째) — 진정 패턴 매칭</p>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">제품 내 8번째 · 중간 함량</div>
+              </div>
+            </div>
+
+            <button onclick="this.textContent = this.textContent.includes('더') ? '접기 ▲' : '2개 더 보기 ▼';"
+              style="padding:10px; background:transparent; border:1px dashed var(--border); border-radius:12px; font-size:13px; color:var(--brand); cursor:pointer; transition:background 150ms ease; font-family:inherit;">
+              2개 더 보기 ▼
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Risks Accordion ── -->
+      <div class="accordion open">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <span style="font-size:18px;">⚠️</span>
+          <span class="accordion-title">주의 요소</span>
+          <span class="badge" style="background:var(--risk-bg); color:#A34B42;">2개</span>
+          <span class="accordion-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+
+            <div class="ingredient-card" style="background:var(--fair-bg); border:1px solid rgba(196,168,61,0.2);">
+              <div class="ingredient-icon-box" style="background:rgba(196,168,61,0.12);">📉</div>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span style="font-size:14px; font-weight:600; color:var(--text-primary);">향료</span>
+                  <span style="font-size:11px; font-weight:600; color:var(--fair); background:rgba(196,168,61,0.12); padding:2px 6px; border-radius:6px;">중간</span>
+                </div>
+                <p style="font-size:12px; color:var(--text-secondary); margin:0; line-height:1.5;">일반적으로 알러지를 유발할 수 있는 성분 — 25번째 성분</p>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">감점: −10점 · 출처: 알러젠</div>
+              </div>
+            </div>
+
+            <div class="ingredient-card" style="background:#F8F8F8; border:1px solid rgba(139,126,118,0.12);">
+              <div class="ingredient-icon-box" style="background:rgba(139,126,118,0.08);">📉</div>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span style="font-size:14px; font-weight:600; color:var(--text-primary);">페녹시에탄올</span>
+                  <span style="font-size:11px; font-weight:600; color:var(--text-secondary); background:rgba(139,126,118,0.08); padding:2px 6px; border-radius:6px;">낮음</span>
+                </div>
+                <p style="font-size:12px; color:var(--text-secondary); margin:0; line-height:1.5;">안전 등급: MODERATE — 방부제 성분</p>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">감점: −3점 · 출처: 안전등급</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Missing Ingredients Accordion ── -->
+      <div class="accordion">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <span style="font-size:18px;">❌</span>
+          <span class="accordion-title">누락된 선호 성분</span>
+          <span class="badge" style="background:var(--fair-bg); color:#8B7A2C;">2개</span>
+          <span class="accordion-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:var(--fair-bg);">
+              <div style="width:8px; height:8px; border-radius:50%; background:var(--risk); flex-shrink:0;"></div>
+              <span style="font-size:14px; font-weight:500; color:var(--text-primary); flex:1;">히알루론산</span>
+              <span style="font-size:11px; color:var(--text-secondary);">중요도: 높음</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:var(--fair-bg);">
+              <div style="width:8px; height:8px; border-radius:50%; background:var(--fair); flex-shrink:0;"></div>
+              <span style="font-size:14px; font-weight:500; color:var(--text-primary); flex:1;">아데노신</span>
+              <span style="font-size:11px; color:var(--text-secondary);">중요도: 보통</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Ingredient Table Accordion ── -->
+      <div class="accordion">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <span style="font-size:18px;">🧪</span>
+          <span class="accordion-title">성분 비교표</span>
+          <span class="badge badge-brand">상세</span>
+          <span class="accordion-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+
+          <!-- Common ingredients section -->
+          <div style="margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <div class="section-dot" style="background:var(--perfect); height:20px;"></div>
+              <span style="font-size:13px; font-weight:600; color:var(--text-primary);">공통 성분</span>
+              <span style="font-size:12px; color:var(--text-muted);">6개</span>
+            </div>
+            <div style="border-radius:12px; border:1px solid var(--border); overflow:hidden;">
+              <div class="ingredient-row">
+                <span class="ing-name">글리세린</span><span class="ing-en">Glycerin</span>
+                <span style="margin-left:auto;"><span class="safety-badge safety-safe">안전</span></span>
+              </div>
+              <div class="ingredient-row">
+                <span class="ing-name">부틸렌글라이콜</span><span class="ing-en">Butylene Glycol</span>
+                <span style="margin-left:auto;"><span class="safety-badge safety-safe">안전</span></span>
+              </div>
+              <div class="ingredient-row">
+                <span class="ing-name">판테놀</span><span class="ing-en">Panthenol</span>
+                <span style="margin-left:auto;"><span class="safety-badge safety-safe">안전</span></span>
+              </div>
+              <div class="ingredient-row">
+                <span class="ing-name">나이아신아마이드</span><span class="ing-en">Niacinamide</span>
+                <span style="margin-left:auto;"><span class="safety-badge safety-safe">안전</span></span>
+              </div>
+              <div class="ingredient-row">
+                <span class="ing-name">페녹시에탄올</span><span class="ing-en">Phenoxyethanol</span>
+                <span style="margin-left:auto;"><span class="safety-badge safety-moderate">보통</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product-only -->
+          <div style="margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+              <div class="section-dot" style="background:var(--info); height:20px;"></div>
+              <span style="font-size:13px; font-weight:600; color:var(--text-primary);">이 제품에만 있는 성분</span>
+              <span style="font-size:12px; color:var(--text-muted);">8개</span>
+            </div>
+            <div style="border-radius:12px; border:1px solid var(--border); overflow:hidden;">
+              <div class="ingredient-row">
+                <span class="ing-name">마데카소사이드</span>
+                <span class="ing-order">#5</span>
+                <span class="safety-badge safety-safe">안전</span>
+              </div>
+              <div class="ingredient-row">
+                <span class="ing-name">스쿠알란</span>
+                <span class="ing-order">#6</span>
+                <span class="safety-badge safety-safe">안전</span>
+              </div>
+              <div class="ingredient-row">
+                <span class="ing-name">세라마이드NP</span>
+                <span class="ing-order">#7</span>
+                <span class="safety-badge safety-safe">안전</span>
+              </div>
+              <div class="ingredient-row" style="border-bottom:none;">
+                <span class="ing-name">향료</span>
+                <span class="ing-order">#25</span>
+                <span class="safety-badge safety-caution">주의</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Metadata ── -->
+      <div style="padding:12px 16px; border-radius:12px; background:var(--bg-warm); display:flex; gap:20px; flex-wrap:wrap; margin-bottom:16px;">
+        <div>
+          <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">분석 모델</div>
+          <div style="font-size:13px; font-weight:600; color:var(--text-body);">cosfit-v1</div>
+        </div>
+        <div>
+          <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">처리 시간</div>
+          <div style="font-size:13px; font-weight:600; color:var(--text-body);">42ms</div>
+        </div>
+        <div>
+          <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">커버리지</div>
+          <div style="font-size:13px; font-weight:600; color:var(--text-body);">5/32 (16%)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function toggleAccordion(btn) {
+    const accordion = btn.closest('.accordion');
+    accordion.classList.toggle('open');
+    const body = accordion.querySelector('.accordion-body');
+    body.style.display = accordion.classList.contains('open') ? 'block' : 'none';
+  }
+
+  // Animate gauge on load
+  window.addEventListener('load', () => {
+    const circle = document.querySelector('circle:last-child');
+    if (circle) {
+      circle.style.transition = 'stroke-dashoffset 1s ease-out';
+    }
+  });
+</script>
+</body>
+</html>

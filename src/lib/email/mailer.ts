@@ -63,7 +63,7 @@ export async function sendOrderConfirmEmail(opts: {
     subject: `[COSFIT] 주문이 접수되었습니다 (${opts.orderNumber})`,
     html: `
       <div style="font-family:Apple SD Gothic Neo,sans-serif;max-width:600px;margin:0 auto;color:#333;">
-        <div style="background:#C4816A;padding:24px;text-align:center;">
+        <div style="background:#10B981;padding:24px;text-align:center;">
           <h1 style="color:#fff;margin:0;font-size:22px;">COSFIT</h1>
         </div>
         <div style="padding:32px 24px;">
@@ -71,7 +71,7 @@ export async function sendOrderConfirmEmail(opts: {
           <p style="font-size:15px;">주문이 성공적으로 접수되었습니다.</p>
           <div style="background:#FBF7F4;border-radius:12px;padding:20px;margin:24px 0;">
             <p style="margin:0 0 4px;font-size:12px;color:#888;">주문번호</p>
-            <p style="margin:0;font-size:18px;font-weight:700;color:#C4816A;">${opts.orderNumber}</p>
+            <p style="margin:0;font-size:18px;font-weight:700;color:#10B981;">${opts.orderNumber}</p>
           </div>
           <table style="width:100%;border-collapse:collapse;">
             <thead>
@@ -85,7 +85,7 @@ export async function sendOrderConfirmEmail(opts: {
           </table>
           <div style="text-align:right;margin-top:16px;padding-top:16px;border-top:2px solid #333;">
             <span style="font-size:14px;color:#888;">총 결제금액</span>
-            <span style="font-size:20px;font-weight:700;margin-left:12px;color:#C4816A;">${opts.finalAmount.toLocaleString()}원</span>
+            <span style="font-size:20px;font-weight:700;margin-left:12px;color:#10B981;">${opts.finalAmount.toLocaleString()}원</span>
           </div>
           <p style="margin-top:32px;font-size:13px;color:#888;text-align:center;">
             궁금한 점은 고객센터(support@cosfit.kr)로 문의해 주세요.
@@ -110,7 +110,7 @@ export async function sendShippingStartEmail(opts: {
     subject: `[COSFIT] 주문하신 상품이 발송되었습니다 (${opts.orderNumber})`,
     html: `
       <div style="font-family:Apple SD Gothic Neo,sans-serif;max-width:600px;margin:0 auto;color:#333;">
-        <div style="background:#C4816A;padding:24px;text-align:center;">
+        <div style="background:#10B981;padding:24px;text-align:center;">
           <h1 style="color:#fff;margin:0;font-size:22px;">COSFIT</h1>
         </div>
         <div style="padding:32px 24px;">
@@ -119,7 +119,7 @@ export async function sendShippingStartEmail(opts: {
           <div style="background:#FBF7F4;border-radius:12px;padding:20px;margin:24px 0;">
             <p style="margin:0 0 12px;"><span style="font-size:12px;color:#888;">주문번호</span><br /><strong>${opts.orderNumber}</strong></p>
             <p style="margin:0 0 12px;"><span style="font-size:12px;color:#888;">택배사</span><br /><strong>${opts.carrier}</strong></p>
-            <p style="margin:0;"><span style="font-size:12px;color:#888;">운송장 번호</span><br /><strong style="font-size:18px;color:#C4816A;">${opts.trackingNumber}</strong></p>
+            <p style="margin:0;"><span style="font-size:12px;color:#888;">운송장 번호</span><br /><strong style="font-size:18px;color:#10B981;">${opts.trackingNumber}</strong></p>
           </div>
           <p style="font-size:13px;color:#888;text-align:center;">
             택배사 홈페이지에서 배송 현황을 확인하실 수 있습니다.

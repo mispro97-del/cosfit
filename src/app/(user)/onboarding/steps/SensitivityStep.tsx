@@ -36,8 +36,8 @@ export function SensitivityStep({
                 border-[1.5px] cursor-pointer transition-all duration-250 text-left
                 ${
                   active
-                    ? "border-[#C4816A] bg-[#F5EDE8]"
-                    : "border-[#EDE6DF] bg-white hover:border-[#E8D4CA]"
+                    ? "border-[#10B981] bg-[#ECFDF5]"
+                    : "border-[#E5E7EB] bg-white hover:border-[#A7F3D0]"
                 }
               `}
             >
@@ -50,22 +50,22 @@ export function SensitivityStep({
                       background:
                         i < level.value
                           ? active
-                            ? "#C4816A"
-                            : "#B5AAA2"
-                          : "#EDE6DF",
+                            ? "#10B981"
+                            : "#9CA3AF"
+                          : "#E5E7EB",
                     }}
                   />
                 ))}
               </div>
               <div className="flex-1">
                 <div
-                  className={`text-[15px] ${active ? "font-semibold text-[#A66B55]" : "font-medium text-[#2D2420]"}`}
+                  className={`text-[15px] ${active ? "font-semibold text-[#059669]" : "font-medium text-[#1F2937]"}`}
                 >
                   {level.label}
                 </div>
-                <div className="text-xs text-[#8B7E76] mt-0.5">{level.desc}</div>
+                <div className="text-xs text-[#6B7280] mt-0.5">{level.desc}</div>
               </div>
-              {active && <div className="text-[#C4816A] text-lg ml-auto">✓</div>}
+              {active && <div className="text-[#10B981] text-lg ml-auto">✓</div>}
             </button>
           );
         })}

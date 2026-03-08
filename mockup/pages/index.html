@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COSFIT — Design Mockup Index</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    body { padding: 40px 24px; max-width: 600px; margin: 0 auto; }
+    h1 { font-size: 32px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.03em; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 40px; }
+    .brand-tag { display: inline-block; background: var(--gradient-brand); color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 16px; letter-spacing: 0.05em; }
+    .page-grid { display: grid; gap: 12px; }
+    .page-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 20px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: white;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: var(--shadow-card);
+      transition: all 200ms ease;
+    }
+    .page-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); border-color: var(--brand-light); }
+    .page-icon { font-size: 28px; width: 52px; height: 52px; border-radius: 14px; background: var(--brand-pale); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .page-info .name { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .page-info .desc { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+    .arrow { color: var(--text-muted); font-size: 18px; margin-left: auto; }
+    .section-title { font-size: 12px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin: 24px 0 10px; }
+    .design-token-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
+    .token-swatch { height: 40px; border-radius: 10px; position: relative; overflow: hidden; }
+    .token-label { font-size: 10px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+  <div class="brand-tag">MOCKUP v1.0</div>
+  <h1>COSFIT</h1>
+  <p class="subtitle">Premium K-Beauty AI Platform — Mobile Design Mockups<br>
+  <a href="../docs/02-design/mockup-spec.md" style="color:var(--brand); font-weight:600;">Design Spec 문서 보기 →</a></p>
+
+  <div class="section-title">Pages</div>
+  <div class="page-grid">
+    <a class="page-card" href="login.html">
+      <div class="page-icon">🔐</div>
+      <div class="page-info">
+        <div class="name">로그인 / Login</div>
+        <div class="desc">Hero gradient + pull-up card, social login, tab switcher</div>
+      </div>
+      <span class="arrow">›</span>
+    </a>
+
+    <a class="page-card" href="onboarding.html">
+      <div class="page-icon">✨</div>
+      <div class="page-info">
+        <div class="name">온보딩 / Onboarding</div>
+        <div class="desc">5-step wizard: skin type, concerns, sensitivity, holy grail products, analyzing</div>
+      </div>
+      <span class="arrow">›</span>
+    </a>
+
+    <a class="page-card" href="history.html">
+      <div class="page-icon">🕐</div>
+      <div class="page-info">
+        <div class="name">분석 기록 / History</div>
+        <div class="desc">Stats summary, grade filter chips, card list, loading + empty states</div>
+      </div>
+      <span class="arrow">›</span>
+    </a>
+
+    <a class="page-card" href="compare-report.html">
+      <div class="page-icon">🎯</div>
+      <div class="page-info">
+        <div class="name">비교 리포트 / FIT Report</div>
+        <div class="desc">Score gauge with glow, breakdown chips, ingredient accordions</div>
+      </div>
+      <span class="arrow">›</span>
+    </a>
+  </div>
+
+  <div class="section-title">Color Tokens</div>
+  <div class="design-token-grid">
+    <div>
+      <div class="token-swatch" style="background:#C4816A;"></div>
+      <div class="token-label">brand</div>
+    </div>
+    <div>
+      <div class="token-swatch" style="background:#A66B55;"></div>
+      <div class="token-label">brand-dark</div>
+    </div>
+    <div>
+      <div class="token-swatch" style="background:#F5EDE8;"></div>
+      <div class="token-label">brand-pale</div>
+    </div>
+    <div>
+      <div class="token-swatch" style="background:#FDFBF9; border:1px solid #EDE6DF;"></div>
+      <div class="token-label">bg-base</div>
+    </div>
+    <div>
+      <div class="token-swatch" style="background:#F9F3ED;"></div>
+      <div class="token-label">bg-warm</div>
+    </div>
+    <div>
+      <div class="token-swatch" style="background:#6B9E7D;"></div>
+      <div class="token-label">perfect</div>
+    </div>
+    <div>
+      <div class="token-swatch" style="background:#C4A83D;"></div>
+      <div class="token-label">fair</div>
+    </div>
+    <div>
+      <div class="token-swatch" style="background:#D4665A;"></div>
+      <div class="token-label">risk</div>
+    </div>
+    <div>
+      <div class="token-swatch" style="background:#5A8EC4;"></div>
+      <div class="token-label">info</div>
+    </div>
+    <div>
+      <div class="token-swatch" style="background:#2D2420;"></div>
+      <div class="token-label">text-primary</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:32px;">Next.js Component Mapping</div>
+  <div style="border-radius:14px; border:1px solid var(--border); background:white; overflow:hidden; font-size:13px;">
+    <div style="padding:10px 16px; border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr auto; gap:12px; font-weight:700; color:var(--text-secondary); font-size:11px; letter-spacing:0.05em; text-transform:uppercase;">
+      <span>Mockup</span><span>Next.js Path</span><span>Priority</span>
+    </div>
+    <div style="padding:10px 16px; border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr auto; gap:12px; background:var(--bg-warm);">
+      <span>btn-primary</span><span style="color:var(--info);">ui/PrimaryButton.tsx</span>
+      <span style="color:var(--risk); font-weight:700; font-size:11px;">HIGH</span>
+    </div>
+    <div style="padding:10px 16px; border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr auto; gap:12px;">
+      <span>bottom-nav</span><span style="color:var(--info);">layout/BottomNav.tsx</span>
+      <span style="color:var(--risk); font-weight:700; font-size:11px;">HIGH</span>
+    </div>
+    <div style="padding:10px 16px; border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr auto; gap:12px; background:var(--bg-warm);">
+      <span>skeleton-card</span><span style="color:var(--info);">ui/SkeletonCard.tsx</span>
+      <span style="color:var(--risk); font-weight:700; font-size:11px;">HIGH</span>
+    </div>
+    <div style="padding:10px 16px; border-bottom:1px solid var(--border); display:grid; grid-template-columns:1fr 1fr auto; gap:12px;">
+      <span>chip</span><span style="color:var(--info);">ui/ChipSelect.tsx</span>
+      <span style="color:var(--fair); font-weight:700; font-size:11px;">MED</span>
+    </div>
+    <div style="padding:10px 16px; display:grid; grid-template-columns:1fr 1fr auto; gap:12px; background:var(--bg-warm);">
+      <span>accordion</span><span style="color:var(--info);">ui/Accordion.tsx</span>
+      <span style="color:var(--fair); font-weight:700; font-size:11px;">MED</span>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -10,7 +10,7 @@ import prisma from "@/lib/prisma";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name, role = "USER" } = body;
+    const { email, password, name, role } = body;
 
     if (!email || !password || !name) {
       return NextResponse.json(
@@ -19,12 +19,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!["USER", "PARTNER"].includes(role)) {
-      return NextResponse.json(
-        { success: false, error: "유효하지 않은 역할입니다." },
-        { status: 400 }
-      );
-    }
+    // role은 USER 또는 PARTNER만 허용 (ADMIN은 시스템에서만 생성)
+    const validRole = role === "PARTNER" ? "PARTNER" : "USER";
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -41,8 +37,8 @@ export async function POST(request: NextRequest) {
         email,
         passwordHash,
         name,
-        role,
-        onboardingStatus: "PENDING",
+        role: validRole,
+        onboardingStatus: validRole === "PARTNER" ? "COMPLETED" : "PENDING",
       },
       select: { id: true, email: true, name: true, role: true },
     });

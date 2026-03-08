@@ -25,5 +25,5 @@ export default async function RootPage() {
     redirect("/onboarding");
   }
 
-  redirect("/history");
+  redirect("/home");
 }

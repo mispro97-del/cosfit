@@ -43,7 +43,7 @@ export function SkinConcernsStep({
         multi
       />
       {value.length > 0 && (
-        <p className="text-center text-[13px] text-[#C4816A] mt-4 animate-[fadeInUp_0.3s_ease_both]">
+        <p className="text-center text-[13px] text-[#10B981] mt-4 animate-[fadeInUp_0.3s_ease_both]">
           {value.length}개 선택됨
         </p>
       )}

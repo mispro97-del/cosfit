@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>COSFIT — 온보딩</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+  <style>
+    .sensitivity-grid {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+    }
+    .sensitivity-card {
+      flex: 1;
+      min-height: 80px;
+      padding: 14px 8px 12px;
+      border-radius: 16px;
+      border: 1.5px solid var(--border);
+      background: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+    .sensitivity-card:hover { border-color: var(--brand-light); }
+    .sensitivity-card.active {
+      border-color: var(--brand);
+      background: var(--brand-pale);
+    }
+    .sensitivity-card .icon { font-size: 24px; }
+    .sensitivity-card .label {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-secondary);
+      text-align: center; line-height: 1.3;
+    }
+    .sensitivity-card.active .label { color: var(--brand-dark); }
+
+    .search-bar-wrap {
+      position: relative; margin-bottom: 16px;
+    }
+    .search-bar {
+      width: 100%; height: 52px;
+      padding: 0 16px 0 48px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: white;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-primary);
+      outline: none;
+      transition: all 200ms ease;
+    }
+    .search-bar:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(196,129,106,0.12);
+    }
+    .search-icon {
+      position: absolute; left: 16px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted); font-size: 18px;
+    }
+
+    .registered-strip {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding-bottom: 4px; margin-bottom: 16px;
+      scrollbar-width: none;
+    }
+    .registered-strip::-webkit-scrollbar { display: none; }
+    .registered-pill {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 6px;
+      height: 36px; padding: 0 12px;
+      border-radius: 20px;
+      background: var(--brand-pale);
+      border: 1px solid var(--brand-light);
+      font-size: 12px; font-weight: 600;
+      color: var(--brand-dark);
+    }
+    .registered-pill .remove {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--brand-light);
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: var(--brand-dark);
+      flex-shrink: 0;
+    }
+
+    .product-result {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 14px;
+      border: 1px solid var(--border); background: white;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow-card);
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+    .product-result:hover {
+      border-color: var(--brand-light);
+      box-shadow: var(--shadow-hover);
+    }
+    .product-img-placeholder {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: var(--brand-pale);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .product-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+    .product-brand { font-size: 12px; color: var(--text-secondary); }
+    .add-btn {
+      width: 32px; height: 32px;
+      border-radius: 10px;
+      border: 1.5px solid var(--brand);
+      background: transparent;
+      color: var(--brand);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 200ms ease;
+    }
+    .add-btn:hover { background: var(--brand-pale); }
+    .add-btn.added {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+
+    /* Tabs (mockup navigation) */
+    .mockup-tabs {
+      display: flex; gap: 4px;
+      padding: 8px 16px 0;
+      background: var(--bg-base);
+      border-bottom: 1px solid var(--border);
+    }
+    .mockup-tab {
+      padding: 8px 12px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: none; background: transparent;
+      color: var(--text-muted); border-radius: 8px 8px 0 0;
+      border-bottom: 2px solid transparent;
+      transition: all 150ms ease;
+    }
+    .mockup-tab.active {
+      color: var(--brand);
+      border-bottom-color: var(--brand);
+      background: var(--brand-ghost);
+    }
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Mockup step navigation (for preview only) -->
+  <div class="mockup-tabs">
+    <button class="mockup-tab active" onclick="showStep(0,this)">Step 1: 피부타입</button>
+    <button class="mockup-tab" onclick="showStep(1,this)">Step 2: 고민</button>
+    <button class="mockup-tab" onclick="showStep(2,this)">Step 3: 민감도</button>
+    <button class="mockup-tab" onclick="showStep(3,this)">Step 4: 인생템</button>
+    <button class="mockup-tab" onclick="showStep(4,this)">분석 중</button>
+  </div>
+
+  <!-- ── STEP 1: 피부 타입 ── -->
+  <div id="step-0">
+    <!-- Header -->
+    <header class="nav-header">
+      <span class="nav-logo">COSFIT</span>
+      <span class="nav-meta">STEP 1 / 3</span>
+    </header>
+
+    <!-- Progress Dots -->
+    <div class="progress-dots">
+      <div class="progress-dot active"></div>
+      <div class="progress-dot future"></div>
+      <div class="progress-dot future"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="page-content" style="padding-top:24px;">
+      <div class="step-header">
+        <span class="step-emoji">🪞</span>
+        <h2 class="step-title">피부 타입을 알려주세요</h2>
+        <p class="step-subtitle">나에게 맞는 성분을 찾기 위한 첫걸음이에요</p>
+      </div>
+
+      <div class="chip-select-grid" id="skin-type-grid">
+        <button class="chip" onclick="selectChip(this,'skin-type-grid')">
+          <span class="chip-icon">🏜️</span>건성
+        </button>
+        <button class="chip" onclick="selectChip(this,'skin-type-grid')">
+          <span class="chip-icon">💧</span>지성
+        </button>
+        <button class="chip active" onclick="selectChip(this,'skin-type-grid')">
+          <span class="chip-icon">🌓</span>복합성
+        </button>
+        <button class="chip" onclick="selectChip(this,'skin-type-grid')">
+          <span class="chip-icon">🌸</span>민감성
+        </button>
+        <button class="chip" onclick="selectChip(this,'skin-type-grid')" style="grid-column: span 2;">
+          <span class="chip-icon">✨</span>중성 (보통)
+        </button>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button class="btn-primary" onclick="showStep(1)">다음</button>
+      <div style="text-align:center; margin-top:4px;">
+        <button class="btn-skip" onclick="showStep(1)">다음에 할게요</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: 피부 고민 ── -->
+  <div id="step-1" style="display:none;">
+    <header class="nav-header">
+      <button class="nav-back" onclick="showStep(0)">←</button>
+      <span class="nav-logo">COSFIT</span>
+      <span class="nav-meta">STEP 2 / 3</span>
+    </header>
+
+    <div class="progress-dots">
+      <div class="progress-dot past"></div>
+      <div class="progress-dot active"></div>
+      <div class="progress-dot future"></div>
+    </div>
+
+    <div class="page-content" style="padding-top:24px;">
+      <div class="step-header">
+        <span class="step-emoji">🔬</span>
+        <h2 class="step-title">피부 고민을 선택해주세요</h2>
+        <p class="step-subtitle">해당하는 것을 모두 선택해주세요 (복수 선택 가능)</p>
+      </div>
+
+      <div class="chip-select-grid" id="concerns-grid" style="gap:10px;">
+        <button class="chip active" onclick="toggleChip(this)"><span class="chip-icon">💦</span>수분 부족</button>
+        <button class="chip" onclick="toggleChip(this)"><span class="chip-icon">✨</span>트러블</button>
+        <button class="chip active" onclick="toggleChip(this)"><span class="chip-icon">🌟</span>모공/피지</button>
+        <button class="chip" onclick="toggleChip(this)"><span class="chip-icon">🌙</span>주름/탄력</button>
+        <button class="chip active" onclick="toggleChip(this)"><span class="chip-icon">☀️</span>색소침착</button>
+        <button class="chip" onclick="toggleChip(this)"><span class="chip-icon">🌸</span>민감/홍조</button>
+        <button class="chip" onclick="toggleChip(this)"><span class="chip-icon">🍃</span>트러블 흔적</button>
+        <button class="chip" onclick="toggleChip(this)"><span class="chip-icon">💎</span>피부결</button>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-primary" onclick="showStep(2)">다음 (3개 선택)</button>
+      <div style="text-align:center; margin-top:4px;">
+        <button class="btn-skip" onclick="showStep(2)">다음에 할게요</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: 민감도 ── -->
+  <div id="step-2" style="display:none;">
+    <header class="nav-header">
+      <button class="nav-back" onclick="showStep(1)">←</button>
+      <span class="nav-logo">COSFIT</span>
+      <span class="nav-meta">STEP 3 / 3</span>
+    </header>
+
+    <div class="progress-dots">
+      <div class="progress-dot past"></div>
+      <div class="progress-dot past"></div>
+      <div class="progress-dot active"></div>
+    </div>
+
+    <div class="page-content" style="padding-top:24px;">
+      <div class="step-header">
+        <span class="step-emoji">🌡️</span>
+        <h2 class="step-title">피부 민감도는 어느 정도인가요?</h2>
+        <p class="step-subtitle">새로운 화장품에 반응이 얼마나 있으신가요?</p>
+      </div>
+
+      <div class="sensitivity-grid" id="sensitivity-grid">
+        <div class="sensitivity-card" onclick="selectSensitivity(this)">
+          <span class="icon">🌸</span>
+          <span class="label">매우<br>민감</span>
+        </div>
+        <div class="sensitivity-card" onclick="selectSensitivity(this)">
+          <span class="icon">🌿</span>
+          <span class="label">민감한<br>편</span>
+        </div>
+        <div class="sensitivity-card active" onclick="selectSensitivity(this)">
+          <span class="icon">🌊</span>
+          <span class="label">보통</span>
+        </div>
+        <div class="sensitivity-card" onclick="selectSensitivity(this)">
+          <span class="icon">🔥</span>
+          <span class="label">강한<br>편</span>
+        </div>
+        <div class="sensitivity-card" onclick="selectSensitivity(this)">
+          <span class="icon">⚡</span>
+          <span class="label">거의<br>안남</span>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div style="margin-top:24px; padding:14px 16px; border-radius:14px; background:var(--info-bg); border:1px solid rgba(90,142,196,0.15);">
+        <p style="font-size:13px; color:var(--info); line-height:1.6; margin:0;">
+          💡 민감도가 높을수록 자극 성분을 더 엄격하게 필터링해드려요.
+        </p>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-primary" onclick="showStep(3)">인생템 등록하기 →</button>
+      <div style="text-align:center; margin-top:4px;">
+        <button class="btn-skip" onclick="showStep(3)">다음에 할게요</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: 인생템 등록 ── -->
+  <div id="step-3" style="display:none;">
+    <header class="nav-header">
+      <button class="nav-back" onclick="showStep(2)">←</button>
+      <span class="nav-logo">COSFIT</span>
+      <span class="nav-meta">인생템 등록</span>
+    </header>
+
+    <div class="page-content" style="padding-top:24px;">
+      <div class="step-header" style="margin-bottom:20px;">
+        <span class="step-emoji">💎</span>
+        <h2 class="step-title">인생템을 등록해주세요</h2>
+        <p class="step-subtitle">내 피부에 잘 맞는 제품 2~5개를 등록하면 AI가 피부 기준을 분석해요</p>
+      </div>
+
+      <!-- Progress bar -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="font-size:13px; color:var(--text-secondary);">등록된 인생템</span>
+          <span style="font-size:13px; color:var(--brand); font-weight:600;">2 / 5</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" style="width:40%;"></div>
+        </div>
+      </div>
+
+      <!-- Registered pills -->
+      <div class="registered-strip">
+        <div class="registered-pill">
+          에스트라 아토베리어
+          <button class="remove">×</button>
+        </div>
+        <div class="registered-pill">
+          토리든 다이브인 세럼
+          <button class="remove">×</button>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="search-bar-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-bar" type="text" placeholder="제품명 또는 브랜드 검색">
+      </div>
+
+      <!-- Results -->
+      <div>
+        <div class="product-result animate-fade-in-up stagger-1">
+          <div class="product-img-placeholder">🧴</div>
+          <div style="flex:1; min-width:0;">
+            <div class="product-name">코스알엑스 스네일 뮤신 에센스</div>
+            <div class="product-brand">COSRX · SERUM</div>
+          </div>
+          <button class="add-btn">+</button>
+        </div>
+        <div class="product-result animate-fade-in-up stagger-2">
+          <div class="product-img-placeholder">💧</div>
+          <div style="flex:1; min-width:0;">
+            <div class="product-name">구달 맑은 비타C 잡티 세럼</div>
+            <div class="product-brand">구달 · SERUM</div>
+          </div>
+          <button class="add-btn added">✓</button>
+        </div>
+        <div class="product-result animate-fade-in-up stagger-3">
+          <div class="product-img-placeholder">🍃</div>
+          <div style="flex:1; min-width:0;">
+            <div class="product-name">아누아 어성초 77 토너</div>
+            <div class="product-brand">아누아 · TONER</div>
+          </div>
+          <button class="add-btn">+</button>
+        </div>
+        <div class="product-result animate-fade-in-up stagger-4">
+          <div class="product-img-placeholder">🫧</div>
+          <div style="flex:1; min-width:0;">
+            <div class="product-name">세타필 젠틀 스킨 클렌저</div>
+            <div class="product-brand">세타필 · CLEANSER</div>
+          </div>
+          <button class="add-btn">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-primary" onclick="showStep(4)">분석 시작하기 (2개 등록됨) →</button>
+    </div>
+  </div>
+
+  <!-- ── STEP 5: 분석 중 ── -->
+  <div id="step-4" style="display:none;">
+    <div class="analyzing-screen">
+      <div class="analyzing-icon" id="analyzing-icon">✨</div>
+      <h2 style="font-size:22px; font-weight:700; color:var(--text-primary); margin-bottom:12px; text-align:center;">
+        AI 분석 중이에요
+      </h2>
+      <p id="analyzing-msg" style="font-size:14px; color:var(--text-secondary); text-align:center; line-height:1.6; margin-bottom:40px;">
+        성분 데이터를 분석하고 있어요...
+      </p>
+
+      <!-- Fake progress bar -->
+      <div style="width:240px; margin-bottom:40px;">
+        <div class="progress-bar-track" style="height:6px;">
+          <div class="progress-bar-fill" id="fake-progress" style="width:0%; transition:width 3s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Dots animation -->
+      <div style="display:flex; gap:8px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--brand);animation:pulse 1s ease 0s infinite;"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--brand);animation:pulse 1s ease 0.2s infinite;"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--brand);animation:pulse 1s ease 0.4s infinite;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentStep = 0;
+
+  function showStep(n, tabEl) {
+    document.querySelectorAll('[id^="step-"]').forEach(el => el.style.display = 'none');
+    document.getElementById('step-' + n).style.display = 'block';
+    currentStep = n;
+
+    // Update tabs
+    document.querySelectorAll('.mockup-tab').forEach((t, i) => {
+      t.classList.toggle('active', i === n);
+    });
+
+    // Trigger fake progress on step 4
+    if (n === 4) startAnalysis();
+
+    window.scrollTo(0, 0);
+  }
+
+  function selectChip(el, gridId) {
+    document.querySelectorAll('#' + gridId + ' .chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function toggleChip(el) { el.classList.toggle('active'); }
+
+  function selectSensitivity(el) {
+    document.querySelectorAll('#sensitivity-grid .sensitivity-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  const analyzeMessages = [
+    '성분 데이터를 분석하고 있어요...',
+    '인생템 패턴을 매칭하고 있어요...',
+    '피부 기준을 생성하고 있어요...',
+    '분석 완료! 결과를 준비하고 있어요.'
+  ];
+
+  function startAnalysis() {
+    let msgIdx = 0;
+    const el = document.getElementById('analyzing-msg');
+    const bar = document.getElementById('fake-progress');
+
+    setTimeout(() => { bar.style.width = '90%'; }, 100);
+
+    const interval = setInterval(() => {
+      msgIdx = (msgIdx + 1) % analyzeMessages.length;
+      el.textContent = analyzeMessages[msgIdx];
+      if (msgIdx === analyzeMessages.length - 1) {
+        clearInterval(interval);
+        setTimeout(() => {
+          bar.style.width = '100%';
+          // Navigate to history in a real app
+        }, 500);
+      }
+    }, 1500);
+  }
+</script>
+</body>
+</html>

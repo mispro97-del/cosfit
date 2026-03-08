@@ -14,10 +14,11 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FBF7F4] px-4">
+    <div className="mobile-shell-bg">
+    <div className="mobile-shell min-h-screen flex flex-col items-center justify-center bg-[#FFFFFF] px-4">
       <div className="text-center max-w-md">
-        <div className="w-16 h-16 bg-[#C4816A]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-[#C4816A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="w-16 h-16 bg-[#10B981]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-[#10B981]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 110 18A9 9 0 0112 3z" />
           </svg>
         </div>
@@ -27,11 +28,12 @@ export default function GlobalError({
         </p>
         <button
           onClick={reset}
-          className="px-6 py-2.5 bg-[#C4816A] text-white rounded-xl text-sm font-medium hover:bg-[#b3705a] transition-colors"
+          className="px-6 py-2.5 bg-[#10B981] text-white rounded-xl text-sm font-medium hover:bg-[#059669] transition-colors"
         >
           다시 시도
         </button>
       </div>
+    </div>
     </div>
   );
 }

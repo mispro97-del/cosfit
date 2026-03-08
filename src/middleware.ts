@@ -18,8 +18,8 @@ interface RouteRule {
 
 const ROUTE_RULES: RouteRule[] = [
   { pattern: /^\/(onboarding|my-products|analysis|compare|history|profile)/, roles: ["USER", "PARTNER", "ADMIN"], redirect: "/login" },
-  { pattern: /^\/(partner)\//, roles: ["PARTNER", "ADMIN"], redirect: "/login?type=partner&error=unauthorized" },
-  { pattern: /^\/(admin)\//, roles: ["ADMIN"], redirect: "/login?type=admin&error=unauthorized" },
+  { pattern: /^\/(partner)\//, roles: ["PARTNER", "ADMIN"], redirect: "/partner/login?error=unauthorized" },
+  { pattern: /^\/(admin)\//, roles: ["ADMIN"], redirect: "/admin/login?error=unauthorized" },
   { pattern: /^\/api\/v1\/partners/, roles: ["PARTNER", "ADMIN"], redirect: "", rateLimit: { windowMs: 60_000, maxRequests: 100 } },
   { pattern: /^\/api\/v1\/admin/, roles: ["ADMIN"], redirect: "", rateLimit: { windowMs: 60_000, maxRequests: 200 } },
   { pattern: /^\/api\/v1\/(products|search)/, roles: ["USER", "PARTNER", "ADMIN"], redirect: "", rateLimit: { windowMs: 60_000, maxRequests: 60 } },
@@ -27,7 +27,7 @@ const ROUTE_RULES: RouteRule[] = [
   { pattern: /^\/(shop)\//, roles: ["USER", "PARTNER", "ADMIN"], redirect: "/login" },
 ];
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/share", "/api/auth", "/api/health", "/api/v1/auth", "/api/v1/products/search", "/api/webhook"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/share", "/api/auth", "/api/health", "/api/v1/auth", "/api/v1/products/search", "/api/webhook", "/partner/login", "/partner/signup", "/admin/login"];
 const STATIC_PREFIXES = ["/_next", "/images", "/favicon.ico", "/robots.txt"];
 
 // ── Rate Limiter (In-Memory) ──
@@ -77,9 +77,10 @@ export async function middleware(request: NextRequest) {
         { status: 401 }
       );
     }
-    const loginUrl = new URL("/login", request.url);
-    if (pathname.startsWith("/partner")) loginUrl.searchParams.set("type", "partner");
-    else if (pathname.startsWith("/admin")) loginUrl.searchParams.set("type", "admin");
+    let loginPath = "/login";
+    if (pathname.startsWith("/partner")) loginPath = "/partner/login";
+    else if (pathname.startsWith("/admin")) loginPath = "/admin/login";
+    const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }

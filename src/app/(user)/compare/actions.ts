@@ -6,9 +6,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { calculateFitScore } from "@/lib/analysis";
 import type { FitScoreRequest } from "@/lib/analysis/types";
+
+// ── Auth Helper ──
+async function getAuthenticatedUserId(): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  return session?.user?.id ?? null;
+}
 
 // ────────────────────────────────────────────────────────────
 // Shared Types
@@ -102,9 +110,11 @@ interface ActionResult<T = void> {
 // ────────────────────────────────────────────────────────────
 
 export async function fetchCompareResult(
-  userId: string,
   compareId: string
 ): Promise<ActionResult<CompareResultDetail>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const result = await prisma.compareResult.findUnique({
       where: { id: compareId, userId },
@@ -231,10 +241,12 @@ export async function fetchCompareResult(
 // ────────────────────────────────────────────────────────────
 
 export async function fetchCompareHistory(
-  userId: string,
   page = 1,
   limit = 20
 ): Promise<ActionResult<{ items: HistoryItem[]; total: number; hasMore: boolean }>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const [results, total] = await Promise.all([
       prisma.compareResult.findMany({
@@ -277,9 +289,11 @@ export async function fetchCompareHistory(
 // ────────────────────────────────────────────────────────────
 
 export async function runCompareAnalysis(
-  userId: string,
   productId: string
 ): Promise<ActionResult<{ compareId: string; fitScore: number; fitGrade: string }>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     const standard = await prisma.userStandard.findUnique({ where: { userId } });
     if (!standard) {
@@ -367,9 +381,11 @@ export async function runCompareAnalysis(
 // ────────────────────────────────────────────────────────────
 
 export async function deleteCompareResult(
-  userId: string,
   compareId: string
 ): Promise<ActionResult> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
   try {
     await prisma.compareResult.delete({ where: { id: compareId, userId } });
     revalidatePath("/(user)/history");
