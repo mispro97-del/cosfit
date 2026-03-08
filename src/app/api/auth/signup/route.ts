@@ -10,17 +10,21 @@ import prisma from "@/lib/prisma";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name, role } = body;
+    const { email, password, name, phone } = body;
 
-    if (!email || !password || !name) {
+    if (!email || !password) {
       return NextResponse.json(
-        { success: false, error: "이메일, 비밀번호, 이름은 필수입니다." },
+        { success: false, error: "이메일과 비밀번호는 필수입니다." },
         { status: 400 }
       );
     }
 
-    // role은 USER 또는 PARTNER만 허용 (ADMIN은 시스템에서만 생성)
-    const validRole = role === "PARTNER" ? "PARTNER" : "USER";
+    if (password.length < 8) {
+      return NextResponse.json(
+        { success: false, error: "비밀번호는 8자 이상이어야 합니다." },
+        { status: 400 }
+      );
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -36,9 +40,10 @@ export async function POST(request: NextRequest) {
       data: {
         email,
         passwordHash,
-        name,
-        role: validRole,
-        onboardingStatus: validRole === "PARTNER" ? "COMPLETED" : "PENDING",
+        name: name || null,
+        phone: phone || null,
+        role: "USER",
+        onboardingStatus: "PENDING",
       },
       select: { id: true, email: true, name: true, role: true },
     });

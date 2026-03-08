@@ -11,10 +11,13 @@ const NAV = [
   { href: "/admin/review-management", label: "AI 리뷰 관리", icon: "💬" },
   { href: "/admin/reviews", label: "리뷰 수집", icon: "📝" },
   { href: "/admin/commerce", label: "커머스·정산", icon: "💰" },
-  { href: "/admin/users", label: "사용자 관리", icon: "👥" },
+  { href: "/admin/members", label: "회원 관리", icon: "👥" },
+  { href: "/admin/statistics", label: "통계/보고서", icon: "📈" },
   { href: "/admin/ingredients", label: "성분 관리", icon: "🧪" },
+  { href: "/admin/ingredients/knowledge", label: "성분 지식 DB", icon: "🧠" },
   { href: "/admin/data-quality", label: "데이터 품질", icon: "📊" },
   { href: "/admin/etl", label: "ETL 파이프라인", icon: "⚙️" },
+  { href: "/admin/admin-users", label: "관리자 계정", icon: "👤" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

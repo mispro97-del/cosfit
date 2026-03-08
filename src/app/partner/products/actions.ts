@@ -466,3 +466,381 @@ export async function removeProductImage(imageId: string): Promise<ActionResult>
     return { success: false, error: "이미지 삭제에 실패했습니다." };
   }
 }
+
+// ── 9. ProductMaster 검색 (제품 연동용) ──
+
+export interface ProductMasterSearchItem {
+  id: string;
+  name: string;
+  brand: string;
+  category: string;
+  imageUrl: string | null;
+}
+
+export async function searchProductMaster(
+  query: string
+): Promise<ActionResult<ProductMasterSearchItem[]>> {
+  const partnerId = await getAuthenticatedPartnerId();
+  if (!partnerId) return { success: false, error: "파트너 인증이 필요합니다." };
+
+  try {
+    if (!query.trim() || query.trim().length < 1) {
+      return { success: true, data: [] };
+    }
+
+    const products = await prisma.productMaster.findMany({
+      where: {
+        OR: [
+          { name: { contains: query.trim(), mode: "insensitive" } },
+          { brand: { name: { contains: query.trim(), mode: "insensitive" } } },
+        ],
+        status: "ACTIVE",
+      },
+      include: { brand: true },
+      take: 20,
+      orderBy: { name: "asc" },
+    });
+
+    const data: ProductMasterSearchItem[] = products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      brand: p.brand.name,
+      category: p.category,
+      imageUrl: p.imageUrl,
+    }));
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("[searchProductMaster Error]", error);
+    return { success: false, error: "제품 검색에 실패했습니다." };
+  }
+}
+
+// ── 10. 제품 전체 등록 (트랜잭션) ──
+
+export interface CreateFullProductData {
+  productId: string;
+  category: string;
+  variants: {
+    sku: string;
+    optionName: string;
+    optionType: string;
+    price: number;
+    originalPrice?: number;
+    stock: number;
+    lowStockAlert: number;
+  }[];
+  images: {
+    imageUrl: string;
+    isMain: boolean;
+  }[];
+  description: {
+    content: string;
+    shortDesc?: string;
+    highlights?: string[];
+  };
+}
+
+export async function createFullProduct(
+  data: CreateFullProductData
+): Promise<ActionResult<{ id: string }>> {
+  const partnerId = await getAuthenticatedPartnerId();
+  if (!partnerId) return { success: false, error: "파트너 인증이 필요합니다." };
+
+  try {
+    // 제품 마스터 존재 확인
+    const productMaster = await prisma.productMaster.findUnique({
+      where: { id: data.productId },
+    });
+    if (!productMaster) {
+      return { success: false, error: "연동할 제품을 찾을 수 없습니다." };
+    }
+
+    // 이미 등록된 제품인지 확인
+    const existing = await prisma.partnerProduct.findUnique({
+      where: { partnerId_productId: { partnerId, productId: data.productId } },
+    });
+    if (existing) {
+      return { success: false, error: "이미 등록된 제품입니다." };
+    }
+
+    // SKU 중복 확인
+    if (data.variants.length > 0) {
+      const skus = data.variants.map((v) => v.sku);
+      const existingSkus = await prisma.productVariant.findMany({
+        where: { sku: { in: skus } },
+        select: { sku: true },
+      });
+      if (existingSkus.length > 0) {
+        return {
+          success: false,
+          error: `이미 사용 중인 SKU가 있습니다: ${existingSkus.map((s) => s.sku).join(", ")}`,
+        };
+      }
+    }
+
+    // 트랜잭션으로 전체 생성
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. PartnerProduct 생성
+      const pp = await tx.partnerProduct.create({
+        data: {
+          partnerId,
+          productId: data.productId,
+          isPromoted: false,
+        },
+      });
+
+      // 2. ProductVariant[] 생성
+      if (data.variants.length > 0) {
+        await tx.productVariant.createMany({
+          data: data.variants.map((v) => ({
+            partnerProductId: pp.id,
+            sku: v.sku,
+            optionName: v.optionName,
+            optionType: v.optionType,
+            price: v.price,
+            originalPrice: v.originalPrice ?? null,
+            stock: v.stock,
+            lowStockAlert: v.lowStockAlert,
+            isActive: true,
+          })),
+        });
+      }
+
+      // 3. ProductImage[] 생성
+      if (data.images.length > 0) {
+        await tx.productImage.createMany({
+          data: data.images.map((img, idx) => ({
+            partnerProductId: pp.id,
+            imageUrl: img.imageUrl,
+            sortOrder: idx,
+            isMain: img.isMain,
+          })),
+        });
+      }
+
+      // 4. ProductDescription 생성
+      if (data.description.content.trim()) {
+        await tx.productDescription.create({
+          data: {
+            partnerProductId: pp.id,
+            content: data.description.content,
+            shortDesc: data.description.shortDesc ?? null,
+            highlights: data.description.highlights ?? [],
+          },
+        });
+      }
+
+      return pp;
+    });
+
+    revalidatePath("/partner/products");
+    return { success: true, data: { id: result.id } };
+  } catch (error) {
+    console.error("[createFullProduct Error]", error);
+    return { success: false, error: "제품 등록에 실패했습니다." };
+  }
+}
+
+// ── 11. 제품 전체 수정 (트랜잭션) ──
+
+export interface UpdateFullProductData {
+  variants: {
+    id?: string; // 기존 variant ID (없으면 새로 생성)
+    sku: string;
+    optionName: string;
+    optionType: string;
+    price: number;
+    originalPrice?: number;
+    stock: number;
+    lowStockAlert: number;
+    isActive: boolean;
+  }[];
+  images: {
+    id?: string;
+    imageUrl: string;
+    isMain: boolean;
+  }[];
+  description: {
+    content: string;
+    shortDesc?: string;
+    highlights?: string[];
+  };
+}
+
+export async function updateFullProduct(
+  partnerProductId: string,
+  data: UpdateFullProductData
+): Promise<ActionResult> {
+  const partnerId = await getAuthenticatedPartnerId();
+  if (!partnerId) return { success: false, error: "파트너 인증이 필요합니다." };
+
+  try {
+    const pp = await prisma.partnerProduct.findFirst({
+      where: { id: partnerProductId, partnerId },
+      include: { variants: true, images: true },
+    });
+    if (!pp) return { success: false, error: "제품을 찾을 수 없습니다." };
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Variants: 삭제된 것 제거, 기존 수정, 새로 추가
+      const existingVariantIds = pp.variants.map((v) => v.id);
+      const incomingVariantIds = data.variants.filter((v) => v.id).map((v) => v.id!);
+      const toDeleteVariantIds = existingVariantIds.filter(
+        (id) => !incomingVariantIds.includes(id)
+      );
+
+      if (toDeleteVariantIds.length > 0) {
+        await tx.productVariant.deleteMany({
+          where: { id: { in: toDeleteVariantIds } },
+        });
+      }
+
+      for (const v of data.variants) {
+        if (v.id) {
+          // 수정
+          await tx.productVariant.update({
+            where: { id: v.id },
+            data: {
+              optionName: v.optionName,
+              optionType: v.optionType,
+              price: v.price,
+              originalPrice: v.originalPrice ?? null,
+              stock: v.stock,
+              lowStockAlert: v.lowStockAlert,
+              isActive: v.isActive,
+            },
+          });
+        } else {
+          // 새로 추가
+          await tx.productVariant.create({
+            data: {
+              partnerProductId,
+              sku: v.sku,
+              optionName: v.optionName,
+              optionType: v.optionType,
+              price: v.price,
+              originalPrice: v.originalPrice ?? null,
+              stock: v.stock,
+              lowStockAlert: v.lowStockAlert,
+              isActive: v.isActive,
+            },
+          });
+        }
+      }
+
+      // 2. Images: 전체 교체 방식
+      const existingImageIds = pp.images.map((img) => img.id);
+      const incomingImageIds = data.images.filter((img) => img.id).map((img) => img.id!);
+      const toDeleteImageIds = existingImageIds.filter(
+        (id) => !incomingImageIds.includes(id)
+      );
+
+      if (toDeleteImageIds.length > 0) {
+        await tx.productImage.deleteMany({
+          where: { id: { in: toDeleteImageIds } },
+        });
+      }
+
+      for (let i = 0; i < data.images.length; i++) {
+        const img = data.images[i];
+        if (img.id) {
+          await tx.productImage.update({
+            where: { id: img.id },
+            data: {
+              imageUrl: img.imageUrl,
+              isMain: img.isMain,
+              sortOrder: i,
+            },
+          });
+        } else {
+          await tx.productImage.create({
+            data: {
+              partnerProductId,
+              imageUrl: img.imageUrl,
+              isMain: img.isMain,
+              sortOrder: i,
+            },
+          });
+        }
+      }
+
+      // 3. Description: upsert
+      await tx.productDescription.upsert({
+        where: { partnerProductId },
+        create: {
+          partnerProductId,
+          content: data.description.content,
+          shortDesc: data.description.shortDesc ?? null,
+          highlights: data.description.highlights ?? [],
+        },
+        update: {
+          content: data.description.content,
+          shortDesc: data.description.shortDesc ?? null,
+          highlights: data.description.highlights ?? [],
+        },
+      });
+    });
+
+    revalidatePath(`/partner/products/${partnerProductId}`);
+    revalidatePath("/partner/products");
+    return { success: true };
+  } catch (error) {
+    console.error("[updateFullProduct Error]", error);
+    return { success: false, error: "제품 수정에 실패했습니다." };
+  }
+}
+
+// ── 12. 제품 삭제 ──
+
+export async function deleteProduct(
+  partnerProductId: string
+): Promise<ActionResult> {
+  const partnerId = await getAuthenticatedPartnerId();
+  if (!partnerId) return { success: false, error: "파트너 인증이 필요합니다." };
+
+  try {
+    const pp = await prisma.partnerProduct.findFirst({
+      where: { id: partnerProductId, partnerId },
+    });
+    if (!pp) return { success: false, error: "제품을 찾을 수 없습니다." };
+
+    // Cascade로 variants, images, description 모두 삭제됨
+    await prisma.partnerProduct.delete({
+      where: { id: partnerProductId },
+    });
+
+    revalidatePath("/partner/products");
+    return { success: true };
+  } catch (error) {
+    console.error("[deleteProduct Error]", error);
+    return { success: false, error: "제품 삭제에 실패했습니다." };
+  }
+}
+
+// ── 13. 프로모션 토글 ──
+
+export async function toggleProductPromotion(
+  partnerProductId: string
+): Promise<ActionResult> {
+  const partnerId = await getAuthenticatedPartnerId();
+  if (!partnerId) return { success: false, error: "파트너 인증이 필요합니다." };
+
+  try {
+    const pp = await prisma.partnerProduct.findFirst({
+      where: { id: partnerProductId, partnerId },
+    });
+    if (!pp) return { success: false, error: "제품을 찾을 수 없습니다." };
+
+    await prisma.partnerProduct.update({
+      where: { id: partnerProductId },
+      data: { isPromoted: !pp.isPromoted },
+    });
+
+    revalidatePath("/partner/products");
+    return { success: true };
+  } catch (error) {
+    console.error("[toggleProductPromotion Error]", error);
+    return { success: false, error: "프로모션 설정에 실패했습니다." };
+  }
+}

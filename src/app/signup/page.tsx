@@ -6,7 +6,6 @@ import Link from "next/link";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -32,7 +31,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role: "USER" }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
 
@@ -52,12 +51,11 @@ export default function SignupPage() {
   return (
     <div className="mobile-shell-bg">
       <div className="mobile-shell min-h-screen flex flex-col">
-        {/* Hero section — green gradient top */}
+        {/* Hero section */}
         <div
           className="relative flex flex-col items-center justify-center px-6 pt-14 pb-8 overflow-hidden"
           style={{ background: "var(--gradient-hero)" }}
         >
-          {/* Decorative blobs */}
           <div
             className="absolute rounded-full"
             style={{
@@ -79,7 +77,6 @@ export default function SignupPage() {
             }}
           />
 
-          {/* Brand */}
           <div className="relative z-10 text-center animate-fade-in-up">
             <div
               className="text-4xl font-black text-white mb-1.5"
@@ -102,26 +99,11 @@ export default function SignupPage() {
           }}
         >
           <div className="mx-auto w-full max-w-[400px]">
-            {/* Drag handle */}
             <div className="mx-auto mb-6 h-1 w-10 rounded-full bg-[#E5E7EB]" />
 
             <h2 className="text-xl font-bold text-[#1F2937] mb-5">회원가입</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold text-[#6B7280]">
-                  이름
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="이름을 입력하세요"
-                  required
-                  autoComplete="name"
-                  className="w-full rounded-xl border-2 border-[#E5E7EB] bg-white px-4 py-3.5 text-sm text-[#1F2937] placeholder:text-[#D1D5DB] transition-colors focus:border-[#10B981] focus:outline-none"
-                />
-              </div>
               <div>
                 <label className="mb-1.5 block text-xs font-semibold text-[#6B7280]">
                   이메일
@@ -216,7 +198,11 @@ export default function SignupPage() {
               </button>
             </form>
 
-            <p className="mt-6 text-center text-xs text-[#6B7280]">
+            <p className="mt-4 text-center text-xs text-[#9CA3AF]">
+              추가 정보는 마이페이지에서 입력할 수 있습니다
+            </p>
+
+            <p className="mt-4 text-center text-xs text-[#6B7280]">
               이미 계정이 있으신가요?{" "}
               <Link
                 href="/login"

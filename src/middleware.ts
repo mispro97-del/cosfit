@@ -18,7 +18,7 @@ interface RouteRule {
 
 const ROUTE_RULES: RouteRule[] = [
   { pattern: /^\/(onboarding|my-products|analysis|compare|history|profile)/, roles: ["USER", "PARTNER", "ADMIN"], redirect: "/login" },
-  { pattern: /^\/(partner)\//, roles: ["PARTNER", "ADMIN"], redirect: "/partner/login?error=unauthorized" },
+  { pattern: /^\/(partner)\//, roles: ["PARTNER"], redirect: "/partner/login?error=unauthorized" },
   { pattern: /^\/(admin)\//, roles: ["ADMIN"], redirect: "/admin/login?error=unauthorized" },
   { pattern: /^\/api\/v1\/partners/, roles: ["PARTNER", "ADMIN"], redirect: "", rateLimit: { windowMs: 60_000, maxRequests: 100 } },
   { pattern: /^\/api\/v1\/admin/, roles: ["ADMIN"], redirect: "", rateLimit: { windowMs: 60_000, maxRequests: 200 } },

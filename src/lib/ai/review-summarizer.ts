@@ -1,9 +1,9 @@
 // ============================================================
 // COSFIT - AI Review Summarizer
-// OpenAI GPT-4o-mini를 사용한 리뷰 AI 요약/감성분석/키워드 추출
+// Anthropic Claude API를 사용한 리뷰 AI 요약/감성분석/키워드 추출
 // ============================================================
 
-import openai from "@/lib/openai";
+import claude from "@/lib/claude";
 
 export interface ReviewSummaryResult {
   aiSummary: string;
@@ -18,7 +18,7 @@ export async function summarizeReview(review: {
   cons: string[];
   productName: string;
 }): Promise<ReviewSummaryResult> {
-  const prompt = `다음은 화장품 리뷰입니다. 아래 JSON 형식으로만 응답하세요.
+  const prompt = `다음은 화장품 리뷰입니다. 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 JSON만 출력하세요.
 
 제품명: ${review.productName}
 별점: ${review.rating}/5
@@ -33,23 +33,21 @@ export async function summarizeReview(review: {
   "keywords": ["핵심 키워드 최대 5개"]
 }`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  const response = await claude.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 256,
     messages: [
       {
-        role: "system",
-        content:
-          "당신은 화장품 리뷰를 분석하는 전문가입니다. 요청된 JSON 형식으로만 응답하세요. 다른 텍스트는 포함하지 마세요.",
+        role: "user",
+        content: prompt,
       },
-      { role: "user", content: prompt },
     ],
-    temperature: 0.3,
-    max_tokens: 200,
-    response_format: { type: "json_object" },
   });
 
-  const raw = response.choices[0]?.message?.content ?? "{}";
-  const parsed = JSON.parse(raw);
+  const raw =
+    response.content[0]?.type === "text" ? response.content[0].text : "{}";
+  const jsonStr = raw.replace(/```json\s*|```\s*/g, "").trim();
+  const parsed = JSON.parse(jsonStr);
 
   const sentiment = ["POSITIVE", "NEGATIVE", "NEUTRAL", "MIXED"].includes(
     parsed.sentiment
@@ -60,6 +58,8 @@ export async function summarizeReview(review: {
   return {
     aiSummary: parsed.summary ?? "",
     aiSentiment: sentiment,
-    aiKeywords: Array.isArray(parsed.keywords) ? parsed.keywords.slice(0, 5) : [],
+    aiKeywords: Array.isArray(parsed.keywords)
+      ? parsed.keywords.slice(0, 5)
+      : [],
   };
 }

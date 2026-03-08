@@ -263,7 +263,149 @@ export async function getInventoryLogs(
   }
 }
 
-// ── 4. 재고 부족 알림 목록 ──
+// ── 4. 일괄 재고 조정 ──
+
+export interface BulkAdjustment {
+  variantId: string;
+  type: "IN" | "OUT" | "ADJUST";
+  quantity: number;
+  reason?: string;
+}
+
+export async function bulkAdjustInventory(
+  adjustments: BulkAdjustment[]
+): Promise<ActionResult<{ successCount: number; failCount: number }>> {
+  const partnerId = await getAuthenticatedPartnerId();
+  if (!partnerId) return { success: false, error: "파트너 인증이 필요합니다." };
+
+  if (!adjustments.length) return { success: false, error: "조정 항목이 없습니다." };
+
+  try {
+    // Verify ownership of all variants
+    const variantIds = adjustments.map((a) => a.variantId);
+    const variants = await prisma.productVariant.findMany({
+      where: { id: { in: variantIds } },
+      include: { partnerProduct: true },
+    });
+
+    const ownedVariants = new Map<string, typeof variants[0]>();
+    for (const v of variants) {
+      if (v.partnerProduct.partnerId === partnerId) {
+        ownedVariants.set(v.id, v);
+      }
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // Process each adjustment in a transaction
+    const operations: any[] = [];
+    for (const adj of adjustments) {
+      const variant = ownedVariants.get(adj.variantId);
+      if (!variant || adj.quantity < 0) {
+        failCount++;
+        continue;
+      }
+
+      let newStock: number;
+      switch (adj.type) {
+        case "IN":
+          newStock = variant.stock + adj.quantity;
+          break;
+        case "OUT":
+          newStock = Math.max(0, variant.stock - adj.quantity);
+          break;
+        case "ADJUST":
+          newStock = adj.quantity;
+          break;
+        default:
+          failCount++;
+          continue;
+      }
+
+      operations.push(
+        prisma.inventoryLog.create({
+          data: {
+            variantId: adj.variantId,
+            type: adj.type,
+            quantity: adj.quantity,
+            reason: adj.reason || "일괄 조정",
+          },
+        })
+      );
+      operations.push(
+        prisma.productVariant.update({
+          where: { id: adj.variantId },
+          data: { stock: newStock },
+        })
+      );
+      successCount++;
+    }
+
+    if (operations.length > 0) {
+      await prisma.$transaction(operations);
+    }
+
+    revalidatePath("/partner/inventory");
+    return {
+      success: true,
+      data: { successCount, failCount },
+    };
+  } catch (error) {
+    console.error("[bulkAdjustInventory Error]", error);
+    return { success: false, error: "일괄 재고 조정에 실패했습니다." };
+  }
+}
+
+// ── 5. 개별 옵션 이력 조회 ──
+
+export async function getVariantHistory(
+  variantId: string
+): Promise<ActionResult<InventoryLogItem[]>> {
+  const partnerId = await getAuthenticatedPartnerId();
+  if (!partnerId) return { success: false, error: "파트너 인증이 필요합니다." };
+
+  try {
+    // Verify ownership
+    const variant = await prisma.productVariant.findUnique({
+      where: { id: variantId },
+      include: {
+        partnerProduct: {
+          include: { product: true },
+        },
+      },
+    });
+
+    if (!variant || variant.partnerProduct.partnerId !== partnerId) {
+      return { success: false, error: "옵션을 찾을 수 없습니다." };
+    }
+
+    const rawLogs = await prisma.inventoryLog.findMany({
+      where: { variantId },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+
+    const logs: InventoryLogItem[] = rawLogs.map((log) => ({
+      id: log.id,
+      variantId: log.variantId,
+      sku: variant.sku,
+      optionName: variant.optionName,
+      productName: variant.partnerProduct.product.name,
+      type: log.type,
+      quantity: log.quantity,
+      reason: log.reason,
+      createdAt: log.createdAt.toISOString(),
+    }));
+
+    return { success: true, data: logs };
+  } catch (error) {
+    console.error("[getVariantHistory Error]", error);
+    return { success: false, error: "이력 조회에 실패했습니다." };
+  }
+}
+
+// ── 6. 재고 부족 알림 목록 ──
 
 export async function getLowStockAlerts(): Promise<ActionResult<LowStockAlertItem[]>> {
   const partnerId = await getAuthenticatedPartnerId();

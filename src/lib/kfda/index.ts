@@ -6,3 +6,6 @@ export type {
   SyncJobOptions, SyncJobResult, SyncProgress,
   QualityIssue, UnmappedIngredient,
 } from "./sync-job";
+
+export { syncAllKfdaData, syncDailyKfdaUpdates, getKfdaTotalCount } from "./full-sync";
+export type { KfdaSyncResult, KfdaSyncProgress } from "./full-sync";

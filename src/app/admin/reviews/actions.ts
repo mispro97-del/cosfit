@@ -1,5 +1,6 @@
 // ============================================================
 // COSFIT - Admin Review Collection & Sentiment Analysis Actions
+// Migrated from OpenAI to Anthropic Claude API
 // ============================================================
 
 "use server";
@@ -8,9 +9,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import OpenAI from "openai";
-
-const openai = new OpenAI();
+import claude from "@/lib/claude";
 
 // ── Auth Guard ──
 
@@ -114,7 +113,7 @@ export async function getCollectedReviews(
 }
 
 /**
- * 특정 제품에 대한 샘플 리뷰 생성 (OpenAI)
+ * 특정 제품에 대한 샘플 리뷰 생성 (Claude API)
  */
 export async function collectReviewsForProduct(productId: string) {
   await requireAdmin();
@@ -128,21 +127,25 @@ export async function collectReviewsForProduct(productId: string) {
     throw new Error("제품을 찾을 수 없습니다.");
   }
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  const response = await claude.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1024,
     messages: [
       {
         role: "user",
         content: `다음 화장품에 대한 현실적인 한국어 리뷰 5개를 JSON으로 생성해주세요.
 제품: ${product.name} (${product.brand.name}, ${product.category})
 형식: {"reviews": [{"content": "리뷰 내용 (2-4문장)", "rating": 1-5, "skinType": "DRY|OILY|COMBINATION|SENSITIVE|NORMAL", "authorName": "닉네임"}]}
-다양한 평점과 피부타입을 포함해주세요. 긍정/부정/중립 리뷰를 골고루 섞어주세요.`,
+다양한 평점과 피부타입을 포함해주세요. 긍정/부정/중립 리뷰를 골고루 섞어주세요.
+반드시 유효한 JSON만 출력하세요. 다른 텍스트 없이 JSON만 응답하세요.`,
       },
     ],
-    response_format: { type: "json_object" },
   });
 
-  const parsed = JSON.parse(response.choices[0].message.content || "{}");
+  const content =
+    response.content[0].type === "text" ? response.content[0].text : "";
+  const jsonStr = content.replace(/```json\s*|```\s*/g, "").trim();
+  const parsed = JSON.parse(jsonStr || "{}");
   const generatedReviews = parsed.reviews || [];
 
   const created = await prisma.$transaction(
@@ -166,7 +169,7 @@ export async function collectReviewsForProduct(productId: string) {
 }
 
 /**
- * 단건 리뷰 감성 분석
+ * 단건 리뷰 감성 분석 (Claude API)
  */
 export async function analyzeReviewSentiment(reviewId: string) {
   await requireAdmin();
@@ -179,8 +182,9 @@ export async function analyzeReviewSentiment(reviewId: string) {
     throw new Error("리뷰를 찾을 수 없습니다.");
   }
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  const response = await claude.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 256,
     messages: [
       {
         role: "user",
@@ -188,14 +192,17 @@ export async function analyzeReviewSentiment(reviewId: string) {
 {"sentiment": "POSITIVE|NEGATIVE|NEUTRAL", "keywords": ["키워드1", "키워드2", "키워드3"]}
 sentiment는 반드시 POSITIVE, NEGATIVE, NEUTRAL 중 하나여야 합니다.
 keywords는 리뷰에서 핵심 키워드 2-5개를 추출해주세요.
+반드시 유효한 JSON만 출력하세요. 다른 텍스트 없이 JSON만 응답하세요.
 
 리뷰: ${review.content}`,
       },
     ],
-    response_format: { type: "json_object" },
   });
 
-  const parsed = JSON.parse(response.choices[0].message.content || "{}");
+  const content =
+    response.content[0].type === "text" ? response.content[0].text : "";
+  const jsonStr = content.replace(/```json\s*|```\s*/g, "").trim();
+  const parsed = JSON.parse(jsonStr || "{}");
 
   const validSentiments = ["POSITIVE", "NEGATIVE", "NEUTRAL"];
   const sentiment = validSentiments.includes(parsed.sentiment)
@@ -231,7 +238,8 @@ export async function bulkAnalyzeSentiment(reviewIds: string[]) {
     throw new Error("한 번에 최대 50개까지 분석할 수 있습니다.");
   }
 
-  const results: { id: string; sentiment: string | null; error?: string }[] = [];
+  const results: { id: string; sentiment: string | null; error?: string }[] =
+    [];
 
   for (const reviewId of reviewIds) {
     try {

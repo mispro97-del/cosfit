@@ -7,7 +7,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getPartnerProducts, type PartnerProductListItem } from "./actions";
+import { useRouter } from "next/navigation";
+import {
+  getPartnerProducts,
+  deleteProduct,
+  toggleProductPromotion,
+  type PartnerProductListItem,
+} from "./actions";
 
 const CAT_EMOJI: Record<string, string> = {
   CREAM: "🧴",
@@ -31,24 +37,68 @@ const STATUS_CONFIG = {
 } as const;
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<PartnerProductListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "active" | "out_of_stock" | "inactive">("all");
+  const [filter, setFilter] = useState<
+    "all" | "active" | "out_of_stock" | "inactive"
+  >("all");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const loadProducts = async () => {
+    const result = await getPartnerProducts();
+    if (result.success && result.data) {
+      setProducts(result.data);
+    } else {
+      setError(result.error ?? "제품 목록을 불러올 수 없습니다.");
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    (async () => {
-      const result = await getPartnerProducts();
-      if (result.success && result.data) {
-        setProducts(result.data);
-      } else {
-        setError(result.error ?? "제품 목록을 불러올 수 없습니다.");
-      }
-      setLoading(false);
-    })();
+    loadProducts();
   }, []);
 
-  const filtered = filter === "all" ? products : products.filter((p) => p.status === filter);
+  const showMessage = (type: "success" | "error", text: string) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`"${name}" 제품을 삭제하시겠습니까?\n모든 옵션, 이미지, 상세설명이 함께 삭제됩니다.`)) {
+      return;
+    }
+    setActionLoading(id);
+    const result = await deleteProduct(id);
+    if (result.success) {
+      showMessage("success", "제품이 삭제되었습니다.");
+      await loadProducts();
+    } else {
+      showMessage("error", result.error ?? "삭제에 실패했습니다.");
+    }
+    setActionLoading(null);
+  };
+
+  const handleTogglePromotion = async (id: string) => {
+    setActionLoading(id);
+    const result = await toggleProductPromotion(id);
+    if (result.success) {
+      await loadProducts();
+    } else {
+      showMessage("error", result.error ?? "프로모션 설정에 실패했습니다.");
+    }
+    setActionLoading(null);
+  };
+
+  const filtered =
+    filter === "all"
+      ? products
+      : products.filter((p) => p.status === filter);
 
   const totalStock = products.reduce((s, p) => s + p.totalStock, 0);
   const totalViews = products.reduce((s, p) => s + p.viewCount, 0);
@@ -91,25 +141,79 @@ export default function ProductsPage() {
             자사 제품의 옵션, 이미지, 상세설명을 관리하세요
           </p>
         </div>
-        <span className="text-xs px-3 py-1.5 rounded-lg bg-[#F3F4F6] text-[#6B7280] font-medium">
-          총 {products.length}개 제품
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs px-3 py-1.5 rounded-lg bg-[#F3F4F6] text-[#6B7280] font-medium">
+            총 {products.length}개 제품
+          </span>
+          <Link
+            href="/partner/products/new"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-[#10B981] text-white no-underline hover:bg-[#059669] transition-colors shadow-sm"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            신규 등록
+          </Link>
+        </div>
       </div>
+
+      {/* Toast */}
+      {message && (
+        <div
+          className={`mb-4 px-4 py-3 rounded-lg text-sm font-medium ${
+            message.type === "success"
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <SummaryCard label="등록 제품" value={products.length} unit="개" />
-        <SummaryCard label="총 재고" value={totalStock.toLocaleString()} unit="EA" />
-        <SummaryCard label="총 조회수" value={totalViews.toLocaleString()} unit="회" />
-        <SummaryCard label="총 구매수" value={totalPurchases.toLocaleString()} unit="건" />
+        <SummaryCard
+          label="총 재고"
+          value={totalStock.toLocaleString()}
+          unit="EA"
+        />
+        <SummaryCard
+          label="총 조회수"
+          value={totalViews.toLocaleString()}
+          unit="회"
+        />
+        <SummaryCard
+          label="총 구매수"
+          value={totalPurchases.toLocaleString()}
+          unit="건"
+        />
       </div>
 
       {/* Filter Tabs */}
       <div className="flex gap-2 mb-4">
         {(["all", "active", "out_of_stock", "inactive"] as const).map((f) => {
-          const labels = { all: "전체", active: "활성", out_of_stock: "품절", inactive: "비활성" };
+          const labels = {
+            all: "전체",
+            active: "활성",
+            out_of_stock: "품절",
+            inactive: "비활성",
+          };
           const count =
-            f === "all" ? products.length : products.filter((p) => p.status === f).length;
+            f === "all"
+              ? products.length
+              : products.filter((p) => p.status === f).length;
           return (
             <button
               key={f}
@@ -131,26 +235,58 @@ export default function ProductsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[#F9FAFB] border-b border-[#E5E9ED]">
-              <th className="text-left px-5 py-3 text-xs font-medium text-[#9CA3AF]">제품</th>
-              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">옵션 수</th>
-              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">총 재고</th>
-              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">조회수</th>
-              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">구매수</th>
-              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">프로모션</th>
-              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">상태</th>
-              <th className="text-right px-5 py-3 text-xs font-medium text-[#9CA3AF]">관리</th>
+              <th className="text-left px-5 py-3 text-xs font-medium text-[#9CA3AF]">
+                제품
+              </th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">
+                옵션
+              </th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">
+                총 재고
+              </th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">
+                조회수
+              </th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">
+                구매수
+              </th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">
+                프로모션
+              </th>
+              <th className="text-center px-3 py-3 text-xs font-medium text-[#9CA3AF]">
+                상태
+              </th>
+              <th className="text-right px-5 py-3 text-xs font-medium text-[#9CA3AF]">
+                관리
+              </th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-5 py-12 text-center text-[#9CA3AF]">
-                  등록된 제품이 없습니다.
+                <td
+                  colSpan={8}
+                  className="px-5 py-12 text-center text-[#9CA3AF]"
+                >
+                  {products.length === 0 ? (
+                    <div className="space-y-3">
+                      <p>등록된 제품이 없습니다.</p>
+                      <Link
+                        href="/partner/products/new"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-[#10B981] text-white no-underline hover:bg-[#059669] transition-colors"
+                      >
+                        첫 제품 등록하기
+                      </Link>
+                    </div>
+                  ) : (
+                    "해당 필터 조건의 제품이 없습니다."
+                  )}
                 </td>
               </tr>
             ) : (
               filtered.map((p) => {
                 const cfg = STATUS_CONFIG[p.status];
+                const isActioning = actionLoading === p.id;
                 return (
                   <tr
                     key={p.id}
@@ -162,12 +298,18 @@ export default function ProductsPage() {
                           {CAT_EMOJI[p.category] ?? "📦"}
                         </span>
                         <div>
-                          <div className="font-medium text-[#1A1D21]">{p.name}</div>
-                          <div className="text-xs text-[#9CA3AF]">{p.brand}</div>
+                          <div className="font-medium text-[#1A1D21]">
+                            {p.name}
+                          </div>
+                          <div className="text-xs text-[#9CA3AF]">
+                            {p.brand}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="text-center text-[#4B5563]">{p.variantCount}</td>
+                    <td className="text-center text-[#4B5563]">
+                      {p.variantCount}
+                    </td>
                     <td className="text-center">
                       <span
                         className={`font-medium ${
@@ -188,15 +330,17 @@ export default function ProductsPage() {
                       {p.purchaseCount.toLocaleString()}
                     </td>
                     <td className="text-center">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-md font-semibold ${
+                      <button
+                        onClick={() => handleTogglePromotion(p.id)}
+                        disabled={isActioning}
+                        className={`text-xs px-2 py-0.5 rounded-md font-semibold border-none cursor-pointer transition-colors disabled:opacity-50 ${
                           p.isPromoted
-                            ? "bg-blue-50 text-blue-600"
-                            : "bg-[#F3F4F6] text-[#9CA3AF]"
+                            ? "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                            : "bg-[#F3F4F6] text-[#9CA3AF] hover:bg-[#E5E9ED]"
                         }`}
                       >
                         {p.isPromoted ? "ON" : "OFF"}
-                      </span>
+                      </button>
                     </td>
                     <td className="text-center">
                       <span
@@ -206,26 +350,21 @@ export default function ProductsPage() {
                       </span>
                     </td>
                     <td className="text-right px-5">
-                      <Link
-                        href={`/partner/products/${p.id}`}
-                        className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md border border-[#E5E9ED] bg-white text-[#4B5563] no-underline hover:bg-[#F9FAFB] transition-colors"
-                      >
-                        상세 관리
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2}
+                      <div className="flex justify-end gap-1">
+                        <Link
+                          href={`/partner/products/${p.id}`}
+                          className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md border border-[#E5E9ED] bg-white text-[#4B5563] no-underline hover:bg-[#F9FAFB] transition-colors"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </Link>
+                          수정
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(p.id, p.name)}
+                          disabled={isActioning}
+                          className="text-xs px-2.5 py-1.5 rounded-md border border-red-200 bg-white text-red-500 cursor-pointer hover:bg-red-50 transition-colors disabled:opacity-50"
+                        >
+                          삭제
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

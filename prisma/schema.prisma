@@ -56,6 +56,10 @@ model User {
   name             String?
   nickname         String?          @unique
   profileImage     String?
+  phone              String?
+  lastLoginAt        DateTime?
+  emailVerifyToken   String?
+  emailVerifyExpires DateTime?
   role             Role             @default(USER)
   onboardingStatus OnboardingStatus @default(PENDING)
 
@@ -72,6 +76,7 @@ model User {
   routineAnalyses   RoutineAnalysis[]
   recommendations   ProductRecommendation[]
   couponUsages      CouponUsage[]
+  adminUser         AdminUser?
 
   partnerId String?
   partner   Partner? @relation(fields: [partnerId], references: [id])
@@ -324,6 +329,9 @@ model Ingredient {
   cosDnaIrritant Int?
   cosDnaSafety   Int?
 
+  knowledgeData      Json?      // AI-enriched knowledge data
+  knowledgeUpdatedAt DateTime?  // Last knowledge update
+
   products      ProductIngredient[]
   synonyms      IngredientSynonym[]
   interactionsA IngredientInteraction[] @relation("InteractionA")
@@ -411,6 +419,10 @@ model Partner {
   contactPhone       String?
   status             PartnerStatus @default(PENDING)
   tier               PartnerTier   @default(BASIC)
+
+  contactInfo    Json?    // { mobile, productInquiry, officePhone, officeAddress }
+  managerInfo    Json?    // { name, department, position }
+  taxInfo        Json?    // { bizDocUrl, taxEmail, taxEmailSecondary }
 
   contractStartDate DateTime?
   contractEndDate   DateTime?
@@ -1003,6 +1015,36 @@ model Promotion {
   @@map("promotions")
 }
 
+// ============================================================
+// 17. ADMIN USER MANAGEMENT (관리자 계정 관리)
+// ============================================================
+
+model AdminUser {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  isSuperAdmin  Boolean  @default(false)
+  otpSecret     String?  // Google OTP secret (base32 encoded)
+  otpEnabled    Boolean  @default(false)
+  permissions   Json     // { menuPermissions: { [menu]: { view, create, edit } } }
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_users")
+}
+
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value Json
+
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
 model PromotionProduct {
   id               String @id @default(cuid())
   promotionId      String
@@ -1014,4 +1056,36 @@ model PromotionProduct {
 
   @@unique([promotionId, partnerProductId])
   @@map("promotion_products")
+}
+
+// ============================================================
+// 18. BATCH JOBS & KFDA SYNC LOGS
+// ============================================================
+
+model BatchJob {
+  id        String   @id @default(cuid())
+  type      String   // KFDA_SYNC, INGREDIENT_KNOWLEDGE
+  enabled   Boolean  @default(false)
+  schedule  String   @default("0 3 * * *") // cron expression
+  lastRunAt DateTime?
+  lastResult Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("batch_jobs")
+}
+
+model KfdaSyncLog {
+  id          String    @id @default(cuid())
+  syncType    String    // FULL, DAILY
+  totalCount  Int
+  processed   Int
+  created     Int
+  updated     Int
+  errors      Int
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  details     Json?
+
+  @@map("kfda_sync_logs")
 }

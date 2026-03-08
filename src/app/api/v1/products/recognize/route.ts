@@ -1,5 +1,5 @@
 // ============================================================
-// COSFIT - AI Image Recognition API
+// COSFIT - AI Image Recognition API (Claude Vision)
 // POST /api/v1/products/recognize
 // ============================================================
 
@@ -7,7 +7,7 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import OpenAI from "openai";
+import claude from "@/lib/claude";
 import { successResponse, errorResponse, ERROR_CODES } from "@/lib/api/response";
 
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -51,11 +51,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // OpenAI Vision API로 제품 인식
-    const openai = new OpenAI();
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+    // Claude Vision API로 제품 인식
+    const response = await claude.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 300,
       messages: [
         {
           role: "user",
@@ -65,18 +64,22 @@ export async function POST(request: NextRequest) {
               text: '이 화장품 이미지에서 제품명과 브랜드명을 추출해주세요. 반드시 아래 JSON 형식으로만 응답해주세요. 다른 텍스트 없이 JSON만 출력하세요:\n{"name": "제품명", "brand": "브랜드명"}\n\n제품을 인식할 수 없으면:\n{"name": null, "brand": null}',
             },
             {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`,
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/jpeg",
+                data: imageBase64,
               },
             },
           ],
         },
       ],
-      max_tokens: 300,
     });
 
-    const content = response.choices[0]?.message?.content?.trim() ?? "";
+    const content =
+      response.content[0]?.type === "text"
+        ? response.content[0].text.trim()
+        : "";
 
     // JSON 파싱 (코드블록 제거)
     let recognized: { name: string | null; brand: string | null };
@@ -103,24 +106,31 @@ export async function POST(request: NextRequest) {
     const orConditions: any[] = [];
 
     if (recognized.name) {
-      orConditions.push({ name: { contains: recognized.name, mode: "insensitive" } });
+      orConditions.push({
+        name: { contains: recognized.name, mode: "insensitive" },
+      });
     }
     if (recognized.brand) {
-      orConditions.push({ brand: { name: { contains: recognized.brand, mode: "insensitive" } } });
-      orConditions.push({ brand: { nameKo: { contains: recognized.brand, mode: "insensitive" } } });
+      orConditions.push({
+        brand: { name: { contains: recognized.brand, mode: "insensitive" } },
+      });
+      orConditions.push({
+        brand: { nameKo: { contains: recognized.brand, mode: "insensitive" } },
+      });
     }
 
-    const matchedProducts = orConditions.length > 0
-      ? await prisma.productMaster.findMany({
-          where: {
-            status: "ACTIVE",
-            OR: orConditions,
-          },
-          include: { brand: true },
-          take: 10,
-          orderBy: { name: "asc" },
-        })
-      : [];
+    const matchedProducts =
+      orConditions.length > 0
+        ? await prisma.productMaster.findMany({
+            where: {
+              status: "ACTIVE",
+              OR: orConditions,
+            },
+            include: { brand: true },
+            take: 10,
+            orderBy: { name: "asc" },
+          })
+        : [];
 
     return successResponse({
       recognized: {
@@ -137,9 +147,13 @@ export async function POST(request: NextRequest) {
       })),
     });
   } catch (error: any) {
-    // OpenAI API 에러 구분
+    // Claude API 에러 구분
     if (error?.status === 429) {
-      return errorResponse(ERROR_CODES.RATE_LIMIT, "AI 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.", 429);
+      return errorResponse(
+        ERROR_CODES.RATE_LIMIT,
+        "AI 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.",
+        429
+      );
     }
 
     console.error("[AI Recognition API Error]", error);
