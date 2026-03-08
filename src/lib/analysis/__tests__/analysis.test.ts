@@ -29,7 +29,7 @@ import {
   MOCK_FAILURE_LOGS,
 } from "./fixtures";
 
-import type { FitScoreRequest } from "../types";
+import type { FitScoreRequest, HolyGrailInput } from "../types";
 
 // ────────────────────────────────────────────────────────────
 // Minimal test runner

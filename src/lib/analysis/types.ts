@@ -263,6 +263,18 @@ export interface FitMissing {
 // 통계 집계 (Partner/Admin)
 // ────────────────────────────────────────────────────────────
 
+/** 비교 결과 입력 (통계 집계용) */
+export interface CompareResultInput {
+  productId: string;
+  productName: string;
+  userId: string;
+  fitScore: number;
+  fitGrade: string;
+  matchedGoodIngredients: string[];
+  matchedRiskIngredients: string[];
+  createdAt: Date;
+}
+
 export interface ProductFitStats {
   productId: string;
   productName: string;
