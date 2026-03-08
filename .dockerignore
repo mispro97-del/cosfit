@@ -54,7 +54,8 @@ docker-compose.*
 .dockerignore
 
 # Scripts (빌드에 불필요)
-scripts
+scripts/bootstrap-aws.sh
+scripts/deploy.sh
 
 # Infra (IaC 코드)
 infra
