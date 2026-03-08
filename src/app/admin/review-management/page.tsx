@@ -225,7 +225,7 @@ export default function ReviewManagementPage() {
                   <div className="mt-3 mb-3">
                     <div className="text-[11px] text-[#555B6E] mb-1 font-medium">원본 리뷰</div>
                     <div className="text-sm text-[#C8CDD8] leading-relaxed bg-[#0F1117] rounded-lg p-3">
-                      "{rev.content}"
+                      &ldquo;{rev.content}&rdquo;
                     </div>
                   </div>
 
