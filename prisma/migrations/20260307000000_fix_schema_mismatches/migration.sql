@@ -14,8 +14,7 @@ ALTER TYPE "OnboardingStatus" ADD VALUE IF NOT EXISTS 'SKIN_PROFILED';
 ALTER TYPE "OnboardingStatus" ADD VALUE IF NOT EXISTS 'PRODUCTS_ADDED';
 ALTER TYPE "OnboardingStatus" ADD VALUE IF NOT EXISTS 'STANDARD_READY';
 
--- Fix 3: Change default onboardingStatus to PENDING
-ALTER TABLE "users" ALTER COLUMN "onboardingStatus" SET DEFAULT 'PENDING';
+-- Fix 3: (DEFAULT change is handled by app code - removed to avoid same-transaction enum use issue)
 
 -- Fix 4: Add missing ProductStatus enum values
 ALTER TYPE "ProductStatus" ADD VALUE IF NOT EXISTS 'REJECTED';
