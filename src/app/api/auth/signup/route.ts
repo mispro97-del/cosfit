@@ -4,6 +4,7 @@
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
@@ -33,9 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: bcrypt 도입 후 아래로 교체
-    // const passwordHash = await bcrypt.hash(password, 12);
-    const passwordHash = password;
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const user = await prisma.user.create({
       data: {
