@@ -2,11 +2,10 @@
 
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
   const signupSuccess = searchParams.get("signup") === "success";
@@ -38,7 +37,7 @@ function LoginForm() {
     window.location.href = callbackUrl;
   }
 
-  async function handleSocialLogin(provider: "google" | "kakao") {
+  async function handleSocialLogin(provider: "google" | "kakao" | "naver" | "apple") {
     await signIn(provider, { callbackUrl });
   }
 
@@ -249,6 +248,33 @@ function LoginForm() {
                   />
                 </svg>
                 카카오로 계속하기
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSocialLogin("naver")}
+                className="flex w-full items-center justify-center gap-3 rounded-xl py-3.5 text-sm font-bold text-white transition-colors hover:opacity-90"
+                style={{ background: "#03C75A" }}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path
+                    d="M12.16 9.57L5.56 0H0V18H5.84V8.43L12.44 18H18V0H12.16V9.57Z"
+                    fill="white"
+                  />
+                </svg>
+                네이버로 계속하기
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSocialLogin("apple")}
+                className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-[#1F2937] bg-[#1F2937] py-3.5 text-sm font-bold text-white transition-colors hover:opacity-90"
+              >
+                <svg width="16" height="18" viewBox="0 0 16 18" fill="none">
+                  <path
+                    d="M13.71 9.54C13.73 11.96 15.84 12.73 15.86 12.74C15.84 12.81 15.53 13.88 14.76 14.99C14.1 15.94 13.41 16.89 12.3 16.91C11.21 16.93 10.86 16.27 9.62 16.27C8.38 16.27 7.99 16.89 6.96 16.93C5.89 16.97 5.09 15.9 4.42 14.96C3.06 12.99 2.01 9.39 3.41 6.93C4.1 5.71 5.36 4.94 6.73 4.92C7.78 4.9 8.77 5.62 9.43 5.62C10.09 5.62 11.28 4.76 12.55 4.88C13.08 4.9 14.52 5.09 15.44 6.42C15.37 6.46 13.69 7.42 13.71 9.54ZM11.35 3.22C11.9 2.55 12.28 1.63 12.18 0.7C11.38 0.74 10.4 1.24 9.83 1.91C9.32 2.5 8.86 3.44 8.97 4.34C9.87 4.41 10.79 3.89 11.35 3.22Z"
+                    fill="white"
+                  />
+                </svg>
+                Apple로 계속하기
               </button>
             </div>
 

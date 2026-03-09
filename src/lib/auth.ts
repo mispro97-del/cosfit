@@ -5,6 +5,8 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import KakaoProvider from "next-auth/providers/kakao";
+import NaverProvider from "next-auth/providers/naver";
+import AppleProvider from "next-auth/providers/apple";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
@@ -61,6 +63,24 @@ export const authOptions: NextAuthOptions = {
           KakaoProvider({
             clientId: process.env.KAKAO_CLIENT_ID,
             clientSecret: process.env.KAKAO_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+
+    ...(process.env.NAVER_CLIENT_ID && process.env.NAVER_CLIENT_SECRET
+      ? [
+          NaverProvider({
+            clientId: process.env.NAVER_CLIENT_ID,
+            clientSecret: process.env.NAVER_CLIENT_SECRET,
+          }),
+        ]
+      : []),
+
+    ...(process.env.APPLE_ID && process.env.APPLE_SECRET
+      ? [
+          AppleProvider({
+            clientId: process.env.APPLE_ID,
+            clientSecret: process.env.APPLE_SECRET,
           }),
         ]
       : []),
