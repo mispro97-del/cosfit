@@ -149,11 +149,11 @@ function RecommendationCard({
           {/* Actions */}
           <div className="flex items-center gap-2 mt-3">
             <Link
-              href={`/compare/${item.productId}`}
+              href={`/shop/${item.productId}`}
               onClick={onView}
               className="flex-1 py-2 rounded-lg bg-[#10B981] text-white text-xs font-semibold text-center no-underline hover:bg-[#059669] transition-colors"
             >
-              상세 분석 보기
+              제품 상세 보기
             </Link>
             {!item.isViewed && (
               <button
@@ -225,7 +225,7 @@ export default function RecommendationsPage() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <Link
-          href="/routine"
+          href="/home"
           className="w-8 h-8 rounded-lg border border-[#E5E7EB] flex items-center justify-center no-underline hover:bg-[#F9FAFB] transition-colors"
         >
           <svg

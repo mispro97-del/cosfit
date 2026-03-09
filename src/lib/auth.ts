@@ -45,6 +45,7 @@ export const authOptions: NextAuthOptions = {
           image: user.profileImage,
           role: user.role as "USER" | "PARTNER" | "ADMIN",
           onboardingStatus: user.onboardingStatus,
+          mustChangePassword: user.mustChangePassword,
         };
       },
     }),
@@ -113,16 +114,18 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as any).role ?? "USER";
         token.onboardingStatus = (user as any).onboardingStatus ?? "PENDING";
+        token.mustChangePassword = (user as any).mustChangePassword ?? false;
       }
 
       if (token.id && !user) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id },
-          select: { role: true, onboardingStatus: true },
+          select: { role: true, onboardingStatus: true, mustChangePassword: true },
         });
         if (dbUser) {
           token.role = dbUser.role as "USER" | "PARTNER" | "ADMIN";
           token.onboardingStatus = dbUser.onboardingStatus;
+          token.mustChangePassword = dbUser.mustChangePassword;
         }
       }
 
@@ -134,6 +137,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id;
         session.user.role = token.role;
         session.user.onboardingStatus = token.onboardingStatus;
+        session.user.mustChangePassword = token.mustChangePassword;
       }
       return session;
     },

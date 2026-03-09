@@ -377,7 +377,54 @@ export async function runCompareAnalysis(
 }
 
 // ────────────────────────────────────────────────────────────
-// Action 4: 분석 결과 삭제
+// Action 4: 제품 검색 (비교 분석용)
+// ────────────────────────────────────────────────────────────
+
+export async function searchProducts(
+  query: string
+): Promise<ActionResult<{ id: string; name: string; brand: string; category: string; imageUrl: string | null }[]>> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
+  if (!query || query.length < 1) {
+    return { success: true, data: [] };
+  }
+
+  try {
+    const products = await prisma.productMaster.findMany({
+      where: {
+        status: "ACTIVE",
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { brand: { name: { contains: query, mode: "insensitive" } } },
+          { brand: { nameKo: { contains: query, mode: "insensitive" } } },
+        ],
+      },
+      include: {
+        brand: { select: { name: true, nameKo: true } },
+      },
+      take: 20,
+      orderBy: { name: "asc" },
+    });
+
+    return {
+      success: true,
+      data: products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        brand: p.brand.nameKo || p.brand.name,
+        category: p.category,
+        imageUrl: p.imageUrl,
+      })),
+    };
+  } catch (error) {
+    console.error("[searchProducts Error]", error);
+    return { success: false, error: "제품 검색 중 오류가 발생했습니다." };
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+// Action 5: 분석 결과 삭제
 // ────────────────────────────────────────────────────────────
 
 export async function deleteCompareResult(

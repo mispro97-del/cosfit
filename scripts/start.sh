@@ -16,5 +16,8 @@ $PRISMA migrate resolve --rolled-back 20260307000000_fix_schema_mismatches 2>/de
 echo "[start.sh] Running DB migrations..."
 $PRISMA migrate deploy && echo "[start.sh] Migrations OK" || echo "[start.sh] Migration warning (continuing)"
 
+echo "[start.sh] Seeding admin user..."
+node prisma/seed-admin.js 2>/dev/null || echo "[start.sh] Admin seed skipped"
+
 echo "[start.sh] Starting Next.js server..."
 exec node server.js

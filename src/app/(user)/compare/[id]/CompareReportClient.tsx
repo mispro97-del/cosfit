@@ -225,7 +225,7 @@ function IngredientSection({ title, items, color, showOrder = false }: {
 // Main Component
 // ────────────────────────────────────────────────────────────
 
-export function CompareReportClient({ compareId, data }: { compareId?: string; data?: CompareResultDetail }) {
+export function CompareReportClient({ data }: { data?: CompareResultDetail }) {
   const r = data ?? MOCK;
   const gc = GRADE_CONFIG[r.fitGrade] || GRADE_CONFIG.FAIR;
   const [showAllReasons, setShowAllReasons] = useState(false);

@@ -28,6 +28,9 @@ const ROUTE_RULES: RouteRule[] = [
 ];
 
 const PUBLIC_PATHS = ["/", "/login", "/signup", "/share", "/api/auth", "/api/health", "/api/v1/auth", "/api/v1/products/search", "/api/webhook", "/partner/login", "/partner/signup", "/admin/login"];
+
+// 비밀번호 변경 강제 제외 경로
+const CHANGE_PASSWORD_EXEMPT = ["/admin/login", "/admin/change-password", "/api/auth"];
 const STATIC_PREFIXES = ["/_next", "/images", "/favicon.ico", "/robots.txt"];
 
 // ── Rate Limiter (In-Memory) ──
@@ -116,6 +119,17 @@ export async function middleware(request: NextRequest) {
     }
 
     break;
+  }
+
+  // 관리자 비밀번호 변경 강제 리다이렉트
+  if (
+    userRole === "ADMIN" &&
+    token.mustChangePassword === true &&
+    pathname.startsWith("/admin") &&
+    !CHANGE_PASSWORD_EXEMPT.some((p) => pathname === p || pathname.startsWith(p + "/"))
+  ) {
+    logAccess(request, userId, "REDIRECT_CHANGE_PW");
+    return NextResponse.redirect(new URL("/admin/change-password", request.url));
   }
 
   logAccess(request, userId, "ALLOW");

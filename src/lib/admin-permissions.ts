@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export type AdminMenu =
+  | "products"
   | "data-collection"
   | "ingredients"
   | "reviews"
@@ -31,6 +32,7 @@ export interface AdminPermissions {
 }
 
 export const ADMIN_MENUS: { key: AdminMenu; label: string }[] = [
+  { key: "products", label: "제품 관리" },
   { key: "data-collection", label: "데이터 수집" },
   { key: "ingredients", label: "성분 관리" },
   { key: "reviews", label: "리뷰 수집" },
