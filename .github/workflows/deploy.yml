@@ -4,8 +4,7 @@
 # Trigger: push to main
 # Pipeline:
 #   1. Quality Gate (lint + type-check)
-#   2. DB Migration (prisma migrate deploy)
-#   3. Docker Build → ECR Push (layer cache)
+#   2. Docker Build → ECR Push (layer cache)
 #   4. App Runner Deploy
 #   5. Health Check (POST-deploy verification)
 #
@@ -33,10 +32,6 @@ on:
     inputs:
       skip_tests:
         description: "Skip quality gate (emergency)"
-        type: boolean
-        default: false
-      skip_migration:
-        description: "Skip DB migration"
         type: boolean
         default: false
 
@@ -78,66 +73,17 @@ jobs:
         run: npm run type-check
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 2. Database Migration
+  # 2. Build & Push to ECR
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  migrate:
-    name: "🗄️ DB Migration"
+  # NOTE: DB Migration은 App Runner 컨테이너 시작 시 start.sh에서 실행됩니다.
+  # RDS가 프라이빗 서브넷에 있어 GitHub Actions에서 직접 접근이 불가합니다.
+  build:
+    name: "🐳 Build & Push ECR"
     runs-on: ubuntu-latest
     needs: quality
     if: |
       always() &&
-      (needs.quality.result == 'success' || needs.quality.result == 'skipped') &&
-      !inputs.skip_migration
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-
-      - name: Install
-        run: npm ci
-
-      - name: Check pending migrations
-        id: check
-        run: |
-          OUTPUT=$(npx prisma migrate status 2>&1 || true)
-          echo "$OUTPUT"
-          if echo "$OUTPUT" | grep -q "Database schema is up to date"; then
-            echo "pending=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "pending=true" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
-      - name: Apply migrations
-        if: steps.check.outputs.pending == 'true'
-        run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-
-      - name: Verify schema
-        run: |
-          npx prisma migrate status
-          echo "✅ Database migration complete"
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # 3. Build & Push to ECR
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  build:
-    name: "🐳 Build & Push ECR"
-    runs-on: ubuntu-latest
-    needs: [quality, migrate]
-    if: |
-      always() &&
-      (needs.quality.result == 'success' || needs.quality.result == 'skipped') &&
-      (needs.migrate.result == 'success' || needs.migrate.result == 'skipped')
+      (needs.quality.result == 'success' || needs.quality.result == 'skipped')
     environment: production
     outputs:
       image_uri: ${{ steps.meta.outputs.image_uri }}
